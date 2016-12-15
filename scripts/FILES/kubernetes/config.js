@@ -56,7 +56,7 @@ module.exports = {
 		}
 	},
 	
-	"deployGroups": ['db', 'core', 'nginx'],
+	"deployGroups": ['db', 'core', 'nginx', 'elk'],
 	"services":{
 		"path": {
 			"dir": __dirname + '/services/',

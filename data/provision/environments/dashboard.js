@@ -78,7 +78,8 @@ var dashboard = {
                 "src": true,
                 "level": "debug",
                 "formatter": {
-                    "outputMode": 'long'
+	                "outputMode": "bunyan",
+	                "levelInString": true
                 }
             },
             "cors": {
