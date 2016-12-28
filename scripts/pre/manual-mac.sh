@@ -13,3 +13,6 @@ brew services
 brew install node mongodb nginx
 brew services start mongodb
 brew services stop nginx
+
+ps aux | grep mongo
+ps aux | grep nginx

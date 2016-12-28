@@ -13,7 +13,7 @@ var rimraf = require("rimraf");
 var async = require("async");
 
 var dataDir = __dirname + "/../data/";
-
+var dataImportDir = __dirname + "/../scripts/FILES/dataImport/";
 module.exports = {
 	"updateCustomData": function (req, res, body, section, cb) {
 		fs.exists(dataDir + "custom.js", function (exists) {
@@ -66,7 +66,72 @@ module.exports = {
 			}
 		});
 	},
-	
+
+    "loadProfile": function (cb) {
+        fs.exists(dataDir + "/startup/profile.js", function (exists) {
+            if (!exists) {
+                return cb(null, false);
+            }
+            else {
+                delete require.cache[require.resolve(dataDir + "/startup/profile.js")];
+                var customData = require(dataDir + "/startup/profile.js");
+                return cb(customData);
+            }
+        });
+    },
+
+	"getDeploymentInfo": function (profile, cb) {
+        //if mongo is a single server
+	    if(profile.extraParam.server){
+            profile.extraParam.server.socketOptions={};
+            profile.extraParam.server.socketOptions.connectTimeoutMS = 2000;
+            profile.extraParam.server.socketOptions.socketTimeoutMS = 2000;
+
+            profile.extraParam.server.autoReconnect = false;
+            profile.extraParam.server.reconnectTries = 1;
+            profile.extraParam.server.reconnectInterval = 100;
+        }
+        //if mongo is a replica set
+        else if(profile.extraParam.replSet){
+            profile.extraParam.replSet.socketOptions={};
+            profile.extraParam.replSet.socketOptions.connectTimeoutMS = 2000;
+            profile.extraParam.replSet.socketOptions.socketTimeoutMS = 2000;
+
+            profile.extraParam.replSet.autoReconnect = false;
+            profile.extraParam.replSet.reconnectTries = 1;
+            profile.extraParam.replSet.reconnectInterval = 100;
+        }
+        //if mongos
+        else if(profile.extraParam.mongos){
+            profile.extraParam.mongos.socketOptions={};
+            profile.extraParam.mongos.socketOptions.connectTimeoutMS = 2000;
+            profile.extraParam.mongos.socketOptions.socketTimeoutMS = 2000;
+
+            profile.extraParam.mongos.autoReconnect = false;
+            profile.extraParam.mongos.reconnectTries = 1;
+            profile.extraParam.mongos.reconnectInterval = 100;
+        }
+
+        profile.URLParam.wtimeoutMS = 2000;
+        profile.URLParam.connectTimeoutMS = 2000;
+        profile.URLParam.socketTimeoutMS = 2000;
+
+		var mongo = new soajs.mongo(profile);
+
+        var condition = {"code": "DASHBOARD"};
+        mongo.findOne("environment", condition, function(error, response){
+        	if(error){
+        		return cb(error);
+			}
+			else{
+        		var data = {
+        			"deployType": response.deployer.selected
+				};
+				return cb(null, data);
+			}
+		});
+	},
+
 	"generateExtKeys": function (opts, cb) {
 		//soajs encryption engine
 		var module = require("soajs/modules/soajs.core").key;
@@ -213,7 +278,7 @@ module.exports = {
 			envData = envData.replace(/%wrkDir%/g, body.gi.wrkDir);
 		}
 		else{
-			envData = envData.replace(/%wrkDir%/g, "/opt/soajs/FILES/profiles/profile.js");
+			envData = envData.replace(/%wrkDir%/g, "/opt");
 		}
 		envData = envData.replace(/%deployType%/g, body.deployment.deployType);
 		envData = envData.replace(/%deployDriver%/g, body.deployment.deployDriver);
@@ -243,27 +308,7 @@ module.exports = {
 		//remove unneeded file
 		fs.unlinkSync(folder + "tenants/info.js");
 	},
-	
-	"importMongo": function (folder, body, cb) {
-		//copy data.js to startup
-		//add prefix while copying
-		fs.readFile(dataDir + "data.js", "utf8", function (error, readData) {
-			if (error) {
-				return res.json(req.soajs.buildResponse({"code": 400, "msg": error.message}));
-			}
-			
-			var writeStream = fs.createWriteStream(folder + "data.js");
-			writeStream.write("var dbPrefix = '" + body.clusters.prefix + "';" + os.EOL);
-			writeStream.write(readData);
-			writeStream.end();
-			
-			//wait 500ms for the write to ensure it finished then return the cb
-			setTimeout(function () {
-				return cb(null, true);
-			}, 500);
-		});
-	},
-	
+
 	"unifyData": function (def, over) {
 		if (over.gi) {
 			for (var i in def.gi) {
@@ -298,7 +343,6 @@ module.exports = {
 				def.clusters[j] = over.clusters[j];
 			}
 		}
-		
 		return def;
 	},
 	
@@ -350,6 +394,7 @@ module.exports = {
 				}
 				
 				runner.write(os.EOL + "ps aux | grep node" + os.EOL);
+				runner.write("ps aux | grep nginx" + os.EOL);
 				runner.end();
 				
 				fs.chmodSync(path.normalize(__dirname + "/../scripts/manual-deploy.sh"), "0755");
@@ -380,6 +425,7 @@ module.exports = {
 					"SOAJS_GIT_DASHBOARD_BRANCH": process.env.SOAJS_GIT_DASHBOARD_BRANCH || "develop",
 					"SOAJS_GIT_BRANCH": process.env.SOAJS_GIT_BRANCH || "develop",
 					"SOAJS_PROFILE": path.normalize(dataDir + "startup/profile.js"),
+					"NODE_PATH": nodePath,
 					
 					"API_PREFIX": body.gi.api,
 					"SITE_PREFIX": body.gi.site,
@@ -439,6 +485,7 @@ module.exports = {
 					"SOAJS_GIT_DASHBOARD_BRANCH": process.env.SOAJS_GIT_DASHBOARD_BRANCH || "develop",
 					"SOAJS_GIT_BRANCH": process.env.SOAJS_GIT_BRANCH || "develop",
 					"SOAJS_PROFILE": path.normalize(dataDir + "startup/profile.js"),
+					"NODE_PATH": nodePath,
 					
 					"API_PREFIX": body.gi.api,
 					"SITE_PREFIX": body.gi.site,
