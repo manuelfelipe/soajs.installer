@@ -2,29 +2,67 @@
 var gConfig = require("../../config.js");
 
 var components = {
+    service: {
+        "apiVersion": "v1",
+        "kind": "Service",
+        "metadata": {
+            "name": "dashboard-proxy-service",
+            "labels": {
+                "soajs.content": "true",
+                "soajs.env.code": "dashboard",
+
+                "soajs.service.name": "proxy",
+                "soajs.service.group": "core",
+                "soajs.service.version": "1",
+                "soajs.service.label": "dashboard-proxy"
+            }
+        },
+        "spec": {
+            "selector": {
+                "soajs.service.label": "dashboard-proxy"
+            },
+            "ports": [
+                {
+                    "protocol": "TCP",
+                    "port": 4009,
+                    "targetPort": 4009
+                }
+            ]
+        }
+    },
     deployment: {
         "apiVersion": "extensions/v1beta1",
         "kind": "Deployment",
         "metadata": {
             "name": "dashboard-proxy",
             "labels": {
+                "soajs.content": "true",
+                "soajs.env.code": "dashboard",
+
+                "soajs.service.name": "proxy",
                 "soajs.service.group": "core",
-                "soajs.service": "proxy",
-                "soajs.env": "dashboard"
+                "soajs.service.version": "1",
+                "soajs.service.label": "dashboard-proxy"
             }
         },
         "spec": {
             "replicas": gConfig.kubernetes.replicas,
             "selector": {
                 "matchLabels": {
-                    "soajs-app": "dashboard-proxy"
+                    "soajs.service.label": "dashboard-proxy"
                 }
             },
             "template": {
                 "metadata": {
                     "name": "dashboard-proxy",
                     "labels": {
-                        "soajs-app": "dashboard-proxy"
+                        "soajs.content": "true",
+                        "soajs.env.code": "dashboard",
+
+                        "soajs.service.name": "proxy",
+                        "soajs.service.group": "core",
+                        "soajs.service.version": "1",
+                        "soajs.service.label": "dashboard-proxy"
                     }
                 },
                 "spec": {
@@ -32,6 +70,7 @@ var components = {
                         {
                             "name": "dashboard-proxy",
                             "image": gConfig.imagePrefix + "/soajs",
+                            "imagePullPolicy": "IfNotPresent",
                             "workingDir": "/opt/soajs/FILES/deployer/",
                             "command": ["./soajsDeployer.sh"],
                             "args": ["-T", "service", "-X", "deploy", "-L"],
@@ -66,14 +105,10 @@ var components = {
                                 },
                                 {
                                     "name": "SOAJS_DEPLOY_HA",
-                                    "value": "true"
+                                    "value": "kubernetes"
                                 },
                                 {
-                                    "name": "SOAJS_DEPLOY_KUBE",
-                                    "value": "true"
-                                },
-                                {
-                                    "name": "SOAJS_KUBE_POD_IP",
+                                    "name": "SOAJS_HA_IP",
                                     "valueFrom": {
                                         "fieldRef": {
                                             "fieldPath": "status.podIP"
@@ -81,15 +116,28 @@ var components = {
                                     }
                                 },
                                 {
-                                    "name": "SOAJS_KUBE_POD_NAME",
+                                    "name": "SOAJS_HA_NAME",
                                     "valueFrom": {
                                         "fieldRef": {
                                             "fieldPath": "metadata.name"
                                         }
                                     }
                                 }
-
+                            ],
+                            "volumeMounts": [
+                                {
+                                    "mountPath": gConfig.kubernetes.volumes.log.path,
+                                    "name": gConfig.kubernetes.volumes.log.label
+                                }
                             ]
+                        }
+                    ],
+                    "volumes": [
+                        {
+                            "name": gConfig.kubernetes.volumes.log.label,
+                            "hostPath": {
+                                "path": gConfig.kubernetes.volumes.log.path
+                            }
                         }
                     ]
                 }

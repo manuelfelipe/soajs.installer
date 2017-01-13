@@ -170,9 +170,6 @@ overApp.controller('overviewCtrl', ['$scope', 'ngDataApi', '$timeout', function 
 				$scope.alerts.push({'type': 'danger', 'msg': error.message});
 				return false;
 			}
-			console.log(
-				response
-			)
 			$scope.style = response;
 			$scope.data = {};
 			if ($scope.style.deployer) {

@@ -23,9 +23,9 @@ var config = {
 	env: [
 		'NODE_ENV=production',
 		'SOAJS_ENV=dashboard',
-		
-		'SOAJS_DEPLOY_HA=true',
-		
+
+		'SOAJS_DEPLOY_HA=swarm',
+
 		'SOAJS_PROFILE=/opt/soajs/FILES/profiles/profile.js',
 		'SOAJS_SRV_AUTOREGISTERHOST=true',
 		'SOAJS_MONGO_PREFIX=' + gConfig.mongo.prefix,
@@ -41,10 +41,10 @@ var config = {
 			"Target": gConfig.docker.socketPath
 		},
 		{
-			"Type": "volume",
-			"Source": "soajs_log_volume",
-			"Target": gConfig.docker.volumePath
-		}
+            "Type": "volume",
+            "Source": gConfig.docker.volumes.log.label,
+            "Target": gConfig.docker.volumes.log.path,
+        }
 	],
 	labels: {
 		"soajs.env": "dashboard",

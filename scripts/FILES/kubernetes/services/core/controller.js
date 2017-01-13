@@ -8,12 +8,18 @@ var components = {
         "metadata": {
             "name": "dashboard-controller-service",
             "labels": {
-                "type": "soajs-service"
+                "soajs.content": "true",
+                "soajs.env.code": "dashboard",
+
+                "soajs.service.name": "controller",
+                "soajs.service.group": "core",
+                "soajs.service.version": "1",
+                "soajs.service.label": "dashboard-controller"
             }
         },
         "spec": {
             "selector": {
-                "soajs-app": "dashboard-controller"
+                "soajs.service.label": "dashboard-controller"
             },
             "ports": [
                 {
@@ -30,23 +36,32 @@ var components = {
         "metadata": {
             "name": "dashboard-controller",
             "labels": {
+                "soajs.env.code": "dashboard",
+	            "soajs.content": "true",
+                "soajs.service.name": "controller",
                 "soajs.service.group": "core",
-                "soajs.service": "controller",
-                "soajs.env": "dashboard"
+                "soajs.service.version": "1",
+                "soajs.service.label": "dashboard-controller"
             }
         },
         "spec": {
             "replicas": gConfig.kubernetes.replicas,
             "selector": {
                 "matchLabels": {
-                    "soajs-app": "dashboard-controller"
+                    "soajs.service.label": "dashboard-controller"
                 }
             },
             "template": {
                 "metadata": {
                     "name": "controllercon",
                     "labels": {
-                        "soajs-app": "dashboard-controller"
+                        "soajs.content": "true",
+                        "soajs.env.code": "dashboard",
+
+                        "soajs.service.name": "controller",
+                        "soajs.service.group": "core",
+                        "soajs.service.version": "1",
+                        "soajs.service.label": "dashboard-controller"
                     }
                 },
                 "spec": {
@@ -54,6 +69,7 @@ var components = {
                         {
                             "name": "dashboard-controller",
                             "image": gConfig.imagePrefix + "/soajs",
+                            "imagePullPolicy": "IfNotPresent",
                             "workingDir": "/opt/soajs/FILES/deployer/",
                             "command": ["./soajsDeployer.sh"],
                             "args": ["-T", "service", "-X", "deploy", "-L"],
@@ -94,14 +110,10 @@ var components = {
                                 },
                                 {
                                     "name": "SOAJS_DEPLOY_HA",
-                                    "value": "true"
+                                    "value": "kubernetes"
                                 },
                                 {
-                                    "name": "SOAJS_DEPLOY_KUBE",
-                                    "value": "true"
-                                },
-                                {
-                                    "name": "SOAJS_KUBE_POD_IP",
+                                    "name": "SOAJS_HA_IP",
                                     "valueFrom": {
                                         "fieldRef": {
                                             "fieldPath": "status.podIP"
@@ -109,14 +121,28 @@ var components = {
                                     }
                                 },
                                 {
-                                    "name": "SOAJS_KUBE_POD_NAME",
+                                    "name": "SOAJS_HA_NAME",
                                     "valueFrom": {
                                         "fieldRef": {
                                             "fieldPath": "metadata.name"
                                         }
                                     }
                                 }
+                            ],
+                            "volumeMounts": [
+                                {
+                                    "mountPath": gConfig.kubernetes.volumes.log.path,
+                                    "name": gConfig.kubernetes.volumes.log.label
+                                }
                             ]
+                        }
+                    ],
+                    "volumes": [
+                        {
+                            "name": gConfig.kubernetes.volumes.log.label,
+                            "hostPath": {
+                                "path": gConfig.kubernetes.volumes.log.path
+                            }
                         }
                     ]
                 }

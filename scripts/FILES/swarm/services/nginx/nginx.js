@@ -35,7 +35,9 @@ var config = {
 	},
 	env: [
 		'SOAJS_ENV=dashboard',
-		
+
+		'SOAJS_DEPLOY_HA=swarm',
+
 		'SOAJS_GIT_DASHBOARD_BRANCH=' + dashUISrc.branch,
 		'SOAJS_NX_API_DOMAIN=' + gConfig.apiPrefix + '.' + masterDomain,
 		'SOAJS_NX_SITE_DOMAIN=' + gConfig.sitePrefix + '.' + masterDomain,
@@ -45,18 +47,18 @@ var config = {
 		'SOAJS_NX_CONTROLLER_PORT_1=' + controllerServicePort
 	],
 	mounts: [
+        {
+            "Type": "bind",
+            "ReadOnly": true,
+            "Source": gConfig.docker.socketPath,
+            "Target": gConfig.docker.socketPath
+        },
 		{
-			"Type": "bind",
-			"ReadOnly": true,
-			"Source": gConfig.docker.socketPath,
-			"Target": gConfig.docker.socketPath
-		},
-		{
-			"Type": "volume",
-			"Source": "soajs_log_volume",
-			"Target": gConfig.docker.volumePath
-		}
-	],
+            "Type": "volume",
+            "Source": gConfig.docker.volumes.log.label,
+            "Target": gConfig.docker.volumes.log.path,
+        }
+    ],
 	labels: {
 		"soajs.env": "dashboard",
 		"soajs.service": "nginx",
@@ -66,7 +68,7 @@ var config = {
 	command: [
 		'bash',
 		'-c',
-		'/etc/init.d/filebeat start; /etc/init.d/topbeat start; ./soajsDeployer.sh -T nginx -X deploy' + deployerExtra
+		'./soajsDeployer.sh -T nginx -X deploy' + deployerExtra
 	],
 	exposedPorts: [
 		{
@@ -102,7 +104,8 @@ module.exports = {
 			"Env": config.env,
 			"Dir": config.workingDir,
 			"Command": [config.command[0]],
-			"Args": config.command.splice(1)
+			"Args": config.command.splice(1),
+			"Mounts": config.mounts
 		},
 		"Placement": {},
 		"Resources": {

@@ -47,7 +47,6 @@ var lib= {
 		"machinePort": parseInt(process.env.CONTAINER_PORT) || 2376,
 		"certsPath": process.env.SOAJS_DOCKER_CERTS_PATH || process.env.HOME + '/.docker',
 		"socketPath": process.env.SOAJS_DOCKER_SOCKET || '/var/run/docker.sock',
-		"volumePath": process.env.SOAJS_DOCKER_Volume || '/var/log/soajs/',
 		"network": process.env.DOCKER_NETWORK ||  'soajsnet',
 		"options": {
 			"ListenAddr": "0.0.0.0:" + (parseInt(process.env.SWARM_INTERNAL_PORT) || 2377),
@@ -62,9 +61,15 @@ var lib= {
 		},
 		"swarmConfig": {
 			"tokens": {}
+		},
+		"volumes": {
+			"log": {
+				"label": "soajs_log_volume",
+				"path": "/var/log/soajs/"
+			}
 		}
 	},
-	"deployGroups": ['db', 'core', 'nginx', 'elk'],
+	"deployGroups": ['db', 'elk', 'core', 'nginx'],
 	"services":{
 		"path": {
 			"dir": __dirname + '/services/',

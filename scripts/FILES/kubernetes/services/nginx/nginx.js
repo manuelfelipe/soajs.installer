@@ -8,13 +8,18 @@ var components = {
 		"metadata": {
 			"name": "dashboard-nginx-service",
 			"labels": {
-				"type": "soajs-service"
+				"soajs.content": "true",
+				"soajs.env.code": "dashboard",
+
+                "soajs.service.name": "nginx",
+                "soajs.service.group": "nginx",
+				"soajs.service.label": "dashboard-nginx"
 			}
 		},
 		"spec": {
 			"type": "NodePort",
 			"selector": {
-				"soajs-app": "dashboard-nginx"
+				"soajs.service.label": "dashboard-nginx"
 			},
 			"ports": [
 				{
@@ -32,23 +37,31 @@ var components = {
 		"metadata": {
 			"name": "dashboard-nginx",
 			"labels": {
-				"soajs.service.group": "nginx",
-				"soajs.service": "nginx",
-				"soajs.env": "dashboard"
+				"soajs.content": "true",
+				"soajs.env.code": "dashboard",
+
+                "soajs.service.name": "nginx",
+                "soajs.service.group": "nginx",
+				"soajs.service.label": "dashboard-nginx"
 			}
 		},
 		"spec": {
 			"replicas": gConfig.kubernetes.replicas,
 			"selector": {
 				"matchLabels": {
-					"soajs-app": "dashboard-nginx"
+					"soajs.service.label": "dashboard-nginx"
 				}
 			},
 			"template": {
 				"metadata": {
 					"name": "dashboard-nginx",
 					"labels": {
-						"soajs-app": "dashboard-nginx"
+						"soajs.content": "true",
+						"soajs.env.code": "dashboard",
+
+		                "soajs.service.name": "nginx",
+		                "soajs.service.group": "nginx",
+						"soajs.service.label": "dashboard-nginx"
 					}
 				},
 				"spec": {
@@ -56,6 +69,7 @@ var components = {
 						{
 							"name": "dashboard-nginx",
 							"image": gConfig.imagePrefix + "/nginx",
+							"imagePullPolicy": "IfNotPresent",
 							"workingDir": "/opt/soajs/FILES/deployer/",
 							"command": ["./soajsDeployer.sh"],
 							"args": ["-T", "nginx", "-X", "deploy"],
@@ -92,10 +106,44 @@ var components = {
 								{
 									"name": "SOAJS_NX_CONTROLLER_PORT_1",
 									"value": "4000"
-								}
-							]
+								},
+								{
+                                    "name": "SOAJS_DEPLOY_HA",
+                                    "value": "kubernetes"
+                                },
+                                {
+                                    "name": "SOAJS_HA_IP",
+                                    "valueFrom": {
+                                        "fieldRef": {
+                                            "fieldPath": "status.podIP"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "SOAJS_HA_NAME",
+                                    "valueFrom": {
+                                        "fieldRef": {
+                                            "fieldPath": "metadata.name"
+                                        }
+                                    }
+                                }
+							],
+                            "volumeMounts": [
+                                {
+                                    "mountPath": gConfig.kubernetes.volumes.log.path,
+                                    "name": gConfig.kubernetes.volumes.log.label
+                                }
+                            ]
 						}
-					]
+					],
+                    "volumes": [
+                        {
+                            "name": gConfig.kubernetes.volumes.log.label,
+                            "hostPath": {
+                                "path": gConfig.kubernetes.volumes.log.path
+                            }
+                        }
+                    ]
 				}
 			}
 		}
