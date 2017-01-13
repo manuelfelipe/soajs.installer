@@ -18,7 +18,7 @@ var config = {
 	
 	image: {
 		prefix: gConfig.imagePrefix,
-		name: 'soajs'
+		name: 'soajs:latest' //depends on name
 	},
 	env: [
 		'NODE_ENV=production',
@@ -39,6 +39,11 @@ var config = {
 			"ReadOnly": true,
 			"Source": gConfig.docker.socketPath,
 			"Target": gConfig.docker.socketPath
+		},
+		{
+			"Type": "volume",
+			"Source": "soajs_log_volume",
+			"Target": gConfig.docker.volumePath
 		}
 	],
 	labels: {

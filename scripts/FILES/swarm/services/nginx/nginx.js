@@ -44,6 +44,19 @@ var config = {
 		'SOAJS_NX_CONTROLLER_IP_1=' + controllerServiceName,
 		'SOAJS_NX_CONTROLLER_PORT_1=' + controllerServicePort
 	],
+	mounts: [
+		{
+			"Type": "bind",
+			"ReadOnly": true,
+			"Source": gConfig.docker.socketPath,
+			"Target": gConfig.docker.socketPath
+		},
+		{
+			"Type": "volume",
+			"Source": "soajs_log_volume",
+			"Target": gConfig.docker.volumePath
+		}
+	],
 	labels: {
 		"soajs.env": "dashboard",
 		"soajs.service": "nginx",
@@ -53,8 +66,7 @@ var config = {
 	command: [
 		'bash',
 		'-c',
-		// '/etc/init.d/filebeat start; /etc/init.d/topbeat start; ./soajsDeployer.sh -T nginx -X deploy' + deployerExtra
-		'./soajsDeployer.sh -T nginx -X deploy' + deployerExtra
+		'/etc/init.d/filebeat start; /etc/init.d/topbeat start; ./soajsDeployer.sh -T nginx -X deploy' + deployerExtra
 	],
 	exposedPorts: [
 		{

@@ -243,11 +243,17 @@
             </div>
         </div>
         <div class="box" ng-show="data.clusters">
-            <div class="box-heading">Clusters Information</div>
+            <div class="box-heading">Mongo Clusters Information</div>
             <div class="box-content">
                 <pre ng-bind-html="data.clusters"></pre>
             </div>
         </div>
+	    <div class="box" ng-show="data.es_clusters">
+		    <div class="box-heading">ElasticSearch Clusters Information</div>
+		    <div class="box-content">
+			    <pre ng-bind-html="data.es_clusters"></pre>
+		    </div>
+	    </div>
         <div class="box" ng-show="data.deployment">
             <div class="box-heading">Deployment Information</div>
             <div class="box-content">

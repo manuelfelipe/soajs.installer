@@ -2,7 +2,7 @@
 
 var profile = require(process.env.SOAJS_PROFILE);
 var mongoHostname = profile.servers[0].host;
-module.exports = {
+var lib= {
 	"masterDomain": process.env.MASTER_DOMAIN || 'soajs.org',
 	"apiPrefix": process.env.API_PREFIX || "dashboard-api",
 	"sitePrefix": process.env.SITE_PREFIX || "dashboard",
@@ -47,6 +47,7 @@ module.exports = {
 		"machinePort": parseInt(process.env.CONTAINER_PORT) || 2376,
 		"certsPath": process.env.SOAJS_DOCKER_CERTS_PATH || process.env.HOME + '/.docker',
 		"socketPath": process.env.SOAJS_DOCKER_SOCKET || '/var/run/docker.sock',
+		"volumePath": process.env.SOAJS_DOCKER_Volume || '/var/log/soajs/',
 		"network": process.env.DOCKER_NETWORK ||  'soajsnet',
 		"options": {
 			"ListenAddr": "0.0.0.0:" + (parseInt(process.env.SWARM_INTERNAL_PORT) || 2377),
@@ -70,5 +71,12 @@ module.exports = {
 			"fileType": 'js'
 		}
 	}
-	
 };
+if (process.SOAJS_ELASTIC_EXTERNAL){
+	lib.elasticsearch = {
+		"servers": JSON.parse(process.SOAJS_ELASTIC_EXTERNAL_SERVERS),
+		"URLParam": JSON.parse(process.SOAJS_ELASTIC_EXTERNAL_URLPARAM),
+		"extraParam": JSON.parse(process.SOAJS_ELASTIC_EXTERNAL_EXTRAPARAM)
+	};
+}
+module.exports = lib;

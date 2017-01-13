@@ -36,7 +36,7 @@ module.exports = {
             "Image": config.image.prefix + '/' + config.image.name,
             "Env": config.env,
             "Command": [config.command[0]],
-            "Args": config.command.splice(1),
+            "Args": config.command.splice(1)
         },
         "Placement": {},
         "Resources": {

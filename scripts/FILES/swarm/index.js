@@ -124,12 +124,15 @@ var lib = {
 
     deployService: function (deployer, options, cb) {
         deployer.createService(options, function (error, result) {
-            if (error) return cb(error);
-
-            lib.registerContainers(deployer, options, cb);
+	        if (options.Name === 'elasticsearch') {
+		        lib.configureElastic(deployer, options, cb);
+	        }
+	        else {
+		        lib.registerContainers(deployer, options, cb);
+	        }
         });
     },
-
+	
     deleteService: function (deployer, options, cb) {
         var service = deployer.getService(options.id);
         service.remove(cb);
@@ -413,7 +416,70 @@ var lib = {
             });
         });
     },
-
+	
+	configureElastic: function (deployer, serviceOptions, cb) {
+		var elasticURL;
+		console.log(JSON.stringify(serviceOptions, null, 2))
+		if (config.elasticsearch) {
+			elasticURL = 'http://';
+			if (config.elasticsearch.username && config.elasticsearch.password) {
+				elasticURL += config.elasticsearch.username + ':' + config.elasticsearch.password + '@';
+			}
+			elasticURL += config.elasticsearch.url + ':' + config.elasticsearch.port;
+		}
+		else {
+			elasticURL = 'http://' + config.docker.machineIP + ':' + serviceOptions.EndpointSpec.Ports[0].PublishedPort;
+		}
+		lib.getServiceIPs(serviceOptions.Name, deployer, serviceOptions.Mode.Replicated.Replicas, function (error, elasticIPs) {
+			if (error) return cb(error);
+			
+			pingElastic(0, function () {
+				utilLog.log('Configuring elasticsearch ...');
+				putMapping(function (error) {
+					if (error) return cb(error);
+					
+					return cb(null, true);
+				});
+			});
+		});
+		function pingElastic(counter, cb) {
+			var options = {
+				method: 'GET',
+				uri: elasticURL
+			};
+			request(options, function (error, response, body) {
+				if (error && (error.code === 'ECONNREFUSED' || error.code === 'ECONNRESET')) {
+					lib.printProgress('Waiting for ' + serviceOptions.Name + ' server to become available', counter++);
+					setTimeout(function () {
+						return pingElastic(counter, cb);
+					}, 1000);
+				}
+				else {
+					return cb(null, true);
+				}
+			});
+		}
+		
+		function putMapping(cb) {
+			mongo.find('analytics', {type: 'mapping'}, function (error, mappings) {
+				if (error) return cb(error);
+				
+				async.each(mappings, function (oneMapping, callback) {
+					var options = {
+						method: 'PUT',
+						uri: elasticURL + '/_template/' + oneMapping.name + '/',
+						json: true,
+						body: oneMapping.json
+					};
+					
+					request(options, function (error, response, body) {
+						return callback(error, body);
+					});
+				}, cb);
+			});
+		}
+	},
+	
     closeDbCon: function (cb) {
         mongo.closeDb();
         return cb();

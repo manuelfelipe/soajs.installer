@@ -35,6 +35,7 @@ var dashboard = {
         "clusters": {
             "dash_cluster": "%clusters%"
         },
+		"es_clusters": "%es_clusters%",
         "config": {
             "prefix": "%clusterPrefix%",
             "session": {
@@ -50,7 +51,11 @@ var dashboard = {
             "urac": {
                 "cluster": "dash_cluster",
                 "tenantSpecific": true
-            }
+            },
+	        "esClient": {
+		        "cluster": "es_clusters",
+		        "tenantSpecific": false
+	        }
         }
     },
     "services": {

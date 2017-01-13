@@ -97,6 +97,7 @@ deploymentApp.controller('deploymentCtrl', ['$scope', 'ngDataApi', '$modal', '$t
 				"gi": (response.gi) ? syntaxHighlight(JSON.stringify(response.gi, null, 4)) : JSON.stringify({}),
 				"security": (response.security) ? syntaxHighlight(JSON.stringify(response.security, null, 2)): JSON.stringify({}),
 				"clusters": (response.clusters) ? syntaxHighlight(response.clusters): JSON.stringify({}),
+				"es_clusters": (response.es_clusters) ? syntaxHighlight(response.es_clusters): false,
 				"deployment": (response.deployment) ? syntaxHighlight(response.deployment): JSON.stringify({})
 			};
 			$timeout(function(){
