@@ -1,10 +1,10 @@
 'use strict';
-
+//done
 var settings = [
     {
-        type: 'settings',
-        name: 'Analytics Settings',
-        json: {
+        "_type": 'settings',
+        "_name": 'Analytics Settings',
+        "_json": {
             env: 'dashboard',
             enabled: false
         }

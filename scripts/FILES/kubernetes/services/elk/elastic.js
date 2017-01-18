@@ -8,13 +8,17 @@ var components = {
 		"metadata": {
 			"name": "dashboard-soajsdata",
 			"labels": {
-				"type": "soajs-service"
+				"soajs.content": "true",
+				"soajs.env.code": "dashboard",
+				"soajs.service.name": "soajsdata",
+				"soajs.service.group": "elk",
+				"soajs.service.label": "dashboard-soajsdata"
 			}
 		},
 		"spec": {
 			"type": "NodePort",
 			"selector": {
-				"soajs-app": "dashboard-soajsdata"
+				"soajs.service.label": "dashboard-soajsdata"
 			},
 			"ports": [
 				{
@@ -30,20 +34,30 @@ var components = {
 		"apiVersion": "extensions/v1beta1",
 		"kind": "Deployment",
 		"metadata": {
-			"name": "dashboard-soajsdata"
+			"name": "dashboard-soajsdata",
+			"labels": {
+				"soajs.env.code": "dashboard",
+				"soajs.service.name": "soajsdata",
+				"soajs.service.group": "elk",
+				"soajs.service.label": "dashboard-soajsdata"
+			}
 		},
 		"spec": {
 			"replicas": 1,
 			"selector": {
 				"matchLabels": {
-					"soajs-app": "dashboard-soajsdata"
+					"soajs.service.label": "dashboard-soajsdata"
 				}
 			},
 			"template": {
 				"metadata": {
 					"name": "dashboard-soajsdata",
 					"labels": {
-						"soajs-app": "dashboard-soajsdata"
+						"soajs.env.code": "dashboard",
+						
+						"soajs.service.name": "soajsdata",
+						"soajs.service.group": "elk",
+						"soajs.service.label": "dashboard-soajsdata"
 					}
 				},
 				"spec": {
@@ -51,6 +65,7 @@ var components = {
 						{
 							"name": "dashboard-soajsdata",
 							"image": "elasticsearch:2.4.1",
+							"imagePullPolicy": "IfNotPresent",
 							"command": ["elasticsearch", "-Des.insecure.allow.root=true"],
 							"ports": [
 								{

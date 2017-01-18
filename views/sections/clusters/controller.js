@@ -192,7 +192,7 @@ clustersApp.controller('clustersCtrl', ['$scope', '$timeout', 'ngDataApi', funct
 			if($scope.deployAnalytics){
 				$scope.es_clusters = {
 					"es_Ext": (response && response.es_clusters && response.es_clusters.es_Ext) ? response.es_clusters.es_Ext : false,
-					"servers": (response && response.es_clusters && response.es_clusters.servers) ? response.es_clusters.servers : [{"host": "127.0.0.1", "port": 27017}],
+					"servers": (response && response.es_clusters && response.es_clusters.servers) ? response.es_clusters.servers : [{"host": "127.0.0.1", "port": 9200}],
 					"credentials": (response && response.es_clusters && response.es_clusters.credentials) ? response.es_clusters.credentials : {
 						"username": "",
 						"password": ""

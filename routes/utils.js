@@ -251,7 +251,7 @@ module.exports = {
 					es_clusters.servers = [
 						{
 							host: "dashboard-soajsdata",
-							port: 27017
+							port: 9200
 						}
 					];
 				}
@@ -259,7 +259,7 @@ module.exports = {
 					es_clusters.servers = [
 						{
 							host: "dashboard-soajsdata",
-							port: 5000 + 27017
+							port: 5000 + 9200
 						}
 					];
 				}
@@ -481,13 +481,12 @@ module.exports = {
 			}
 		}
 		else {
-			req.soajs.inputmaskData.es_clusters.servers = [{"host": "127.0.0.1", "port": 27017}];
+			req.soajs.inputmaskData.es_clusters.servers = [{"host": "127.0.0.1", "port": 9200}];
 		}
 		return cb(null, true);
 	},
 	
 	"deployContainer": function (body, driver, loc, cb) {
-		console.log(JSON.stringify(body, null, 2));
 		whereis('node', function (err, nodePath) {
 			if (err) {
 				return cb(err);

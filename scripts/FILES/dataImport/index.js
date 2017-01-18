@@ -107,22 +107,24 @@ var lib = {
 	 Analytics
 	 */
 	"addAnalytics": function (cb) {
-		var dashboard = require(dataFolder + "analytics/dashboard.js");
+		//var control_dashboard_fb = require(dataFolder + "analytics/control_dashboard_fb.js"); //pending peter
+		var dashboard_taskName_tb = require(dataFolder + "analytics/dashboard_taskName_tb.js");
 		var mappings = require(dataFolder + "analytics/mappings.js");
-		var searches = require(dataFolder + "analytics/searches.js");
-		var settings = require(dataFolder + "analytics/settings.js");
-		var visuals = require(dataFolder + "analytics/visuals.js");
-		mongo.insert("analytics", dashboard, function (err){
-			mongo.insert("analytics", mappings, function (err){
-				mongo.insert("analytics", searches, function (err){
-					mongo.insert("analytics", settings, function (err){
-						mongo.insert("analytics", visuals, function (err){
-							cb();
-						});
-					});
-				});
-			});
-		});
+		var nginx_dashboard_fb = require(dataFolder + "analytics/nginx_dashboard_fb.js");
+		//var searches_control_tb = require(dataFolder + "analytics/searches_control_tb.js");//pending peter
+		var searches_taskName_tb = require(dataFolder + "analytics/searches_taskName_tb.js");
+		//var service_dashboard_fb = require(dataFolder + "analytics/service_dashboard_fb.js");//pending peter
+		var settings = require(dataFolder + "analytics/settings.js");//pending peter
+		//var visuals_control_fb = require(dataFolder + "analytics/visuals_control_fb.js");
+		var visuals_nginx_fb = require(dataFolder + "analytics/visuals_nginx_fb.js");//pending peter
+		//var visuals_service_fb = require(dataFolder + "analytics/visuals_service_fb.js");//pending peter
+		var visuals_taskName_tb = require(dataFolder + "analytics/visuals_taskName_tb.js");
+		
+		var records= dashboard_taskName_tb.concat(mappings).concat(nginx_dashboard_fb).concat(visuals_nginx_fb).concat(visuals_taskName_tb).concat(searches_taskName_tb);
+		records.concat(visuals_nginx_fb);
+		records.concat(settings);
+		mongo.insert("analytics", records, cb);
+		
 	},
 	/***************************************************************
 	 *

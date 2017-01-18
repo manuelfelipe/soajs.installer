@@ -73,8 +73,13 @@ function deploySOAJS(deployer) {
 			});
 		}, function (error, result) {
 			if (error) throw new Error (error);
+			lib.setDefaultIndex(function (err){
+				if (err){
+					throw new Error (error)
+				}
+				lib.closeDbCon(function(){});
+			});
 			
-			lib.closeDbCon(function(){});
 		});
 	});
 }

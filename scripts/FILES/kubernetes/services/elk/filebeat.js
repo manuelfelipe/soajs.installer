@@ -1,4 +1,9 @@
+/**
+ * Created by ragheb on 1/17/17.
+ */
 'use strict';
+'use strict';
+var gConfig = require("../../config.js");
 
 var components = {
 	service: {
@@ -22,9 +27,9 @@ var components = {
 			"ports": [
 				{
 					"protocol": "TCP",
-					"port": 5601,
-					"targetPort": 5601,
-					"nodePort": ( 5000 + 5601 )
+					"port": 12201,
+					"targetPort": 12201,
+					"nodePort": ( 12201 + 9200 )
 				}
 			]
 		}
@@ -42,7 +47,7 @@ var components = {
 			}
 		},
 		"spec": {
-			"replicas": 1,
+			"replicas": gConfig.kubernetes.replicas,
 			"selector": {
 				"matchLabels": {
 					"soajs.service.label": "dashboard-soajsdata"
@@ -63,14 +68,33 @@ var components = {
 					"containers": [
 						{
 							"name": "dashboard-soajsdata",
-							"image": "kibana:4.6.2",
+							"image": gConfig.imagePrefix + "/filebeat",
 							"imagePullPolicy": "IfNotPresent",
-							"command": ["kibana"],
+							"command": [
+								"bash",
+								"-c",
+								"chown filebeat:filebeat /etc/filebeat/filebeat.yml; filebeat -f /etc/filebeat/filebeat.yml"
+							],
 							"ports": [
 								{
-									"containerPort": 5601
+									
+									"containerPort": 12201
+								}
+							],
+							"volumeMounts": [
+								{
+									"mountPath": gConfig.kubernetes.volumes.log.path,
+									"name": gConfig.kubernetes.volumes.log.label
 								}
 							]
+						}
+					],
+					"volumes": [
+						{
+							"name": gConfig.kubernetes.volumes.log.label,
+							"hostPath": {
+								"path": gConfig.kubernetes.volumes.log.path
+							}
 						}
 					]
 				}
