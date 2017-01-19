@@ -85,7 +85,7 @@ overApp.controller('overviewCtrl', ['$scope', 'ngDataApi', '$timeout', function 
 				"deployDriver": "container.docker.remote",
 				"deployType": "container"
 			};
-			output.deployAnalytics = $scope.analytics.local;
+			output.deployAnalytics = $scope.analytics.remote;
 		}
 		//if docker remote is selected
 		else if (!$scope.manual && !$scope.local && $scope.remote && !$scope.docker && $scope.kubernetes) {
@@ -93,7 +93,7 @@ overApp.controller('overviewCtrl', ['$scope', 'ngDataApi', '$timeout', function 
 				"deployDriver": "container.kubernetes.remote",
 				"deployType": "container"
 			};
-			output.deployAnalytics = $scope.analytics.local;
+			output.deployAnalytics = $scope.analytics.remote;
 		}
 		
 		var options = {
