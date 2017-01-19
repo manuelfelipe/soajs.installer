@@ -7,7 +7,7 @@ overApp.controller('overviewCtrl', ['$scope', 'ngDataApi', '$timeout', function 
 	$scope.closeAlert = function (i) {
 		$scope.alerts.splice(i, 1);
 	};
-	$scope.analytics= {};
+	$scope.analytics = {};
 	$scope.previousCheckComplete = false;
 	$scope.deploymentExists = null;
 	$scope.findCustomFile = function (previousDeploymentInfo, deploymentExists, cb) {
@@ -69,9 +69,7 @@ overApp.controller('overviewCtrl', ['$scope', 'ngDataApi', '$timeout', function 
 				"deployDriver": "container.docker.local",
 				"deployType": "container"
 			};
-			if ($scope.analytics.local){
-				output.deployAnalytics = true;
-			}
+			output.deployAnalytics = $scope.analytics.remote ? true : false;
 		}
 		//if kubernetes local is selected
 		else if (!$scope.manual && $scope.local && !$scope.remote && !$scope.docker && $scope.kubernetes) {
@@ -79,9 +77,7 @@ overApp.controller('overviewCtrl', ['$scope', 'ngDataApi', '$timeout', function 
 				"deployDriver": "container.kubernetes.local",
 				"deployType": "container"
 			};
-			if ($scope.analytics.local){
-				output.deployAnalytics = true;
-			}
+			output.deployAnalytics = $scope.analytics.remote ? true : false;
 		}
 		//if docker remote is selected
 		else if (!$scope.manual && !$scope.local && $scope.remote && $scope.docker && !$scope.kubernetes) {
@@ -89,9 +85,7 @@ overApp.controller('overviewCtrl', ['$scope', 'ngDataApi', '$timeout', function 
 				"deployDriver": "container.docker.remote",
 				"deployType": "container"
 			};
-			if ($scope.analytics.remote){
-				output.deployAnalytics = true;
-			}
+			output.deployAnalytics = $scope.analytics.remote ? true : false;
 		}
 		//if docker remote is selected
 		else if (!$scope.manual && !$scope.local && $scope.remote && !$scope.docker && $scope.kubernetes) {
@@ -99,9 +93,7 @@ overApp.controller('overviewCtrl', ['$scope', 'ngDataApi', '$timeout', function 
 				"deployDriver": "container.kubernetes.remote",
 				"deployType": "container"
 			};
-			if ($scope.analytics.remote){
-				output.deployAnalytics = true;
-			}
+			output.deployAnalytics = $scope.analytics.remote ? true : false;
 		}
 		
 		var options = {
@@ -229,9 +221,9 @@ overApp.controller('overviewCtrl', ['$scope', 'ngDataApi', '$timeout', function 
 			}
 			$scope.previousCheckComplete = true;
 			//check for existing deployments.
-			$scope.findCustomFile(response.previousDeploymentInfo, response.previousDeployment, function(){
+			$scope.findCustomFile(response.previousDeploymentInfo, response.previousDeployment, function () {
 				
-				$timeout(function(){
+				$timeout(function () {
 					resizeContent();
 				}, 500);
 			});
