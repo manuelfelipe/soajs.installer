@@ -213,7 +213,7 @@ module.exports = {
 							"containerDir": {"type": "string", "required": false},
 							"containerHost": {"type": "string", "required": false},
 							"deployDockerNodes": {"type": "array", "required": false, "items": {"type": "string"}},
-
+							"deployAnalytics": {"type": "boolean", "required": false},
                             "gitOwner": {"type": "string", "required": false},
                             "gitRepo": {"type": "string", "required": false},
                             "gitToken": {"type": "string", "required": false},
