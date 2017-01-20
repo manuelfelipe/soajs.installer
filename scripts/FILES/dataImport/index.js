@@ -17,35 +17,35 @@ var mongo = new soajs.mongo(profile);
 mongo.dropDatabase(function () {
 	lib.addExtKeys(function (errKeys) {
         if(errKeys){
-            console.log("Error while importing external keys \n"+ errKeys);
+            throw new Error("Error while importing external keys \n"+ errKeys);
         }
 		lib.addEnvs(function (errEnvs) {
 			if(errEnvs){
-				console.log("Error while importing environments \n"+ errEnvs);
+				throw new Error("Error while importing environments \n" + errEnvs)
 			}
 			lib.addProducts(function (errProducts) {
                 if(errProducts){
-                    console.log("Error while importing products \n"+ errProducts);
+                    throw new Error("Error while importing products \n"+ errProducts);
                 }
 				lib.addServices(function (errServices) {
                     if(errServices){
-                        console.log("Error while importing services \n"+ errServices);
+                        throw new Error("Error while importing services \n"+ errServices);
                     }
 					lib.addTenants(function (errTenants) {
                         if(errTenants){
-                            console.log("Error while importing tenants \n"+ errTenants)
+                            throw new Error("Error while importing tenants \n"+ errTenants)
                         }
 						lib.addGitAccounts(function (errGit) {
                             if(errGit){
-                                console.log("Error while importing git accounts \n"+ errGit);
+                                throw new Error("Error while importing git accounts \n"+ errGit);
                             }
 							lib.addAnalytics(function (errAnalytics) {
                                 if(errAnalytics){
-                                    console.log("Error while importing analytics \n"+ errAnalytics);
+                                    throw new Error("Error while importing analytics \n"+ errAnalytics);
                                 }
 								lib.provisionIndex(function (errProvisionIndex) {
                                     if(errProvisionIndex){
-                                        console.log("Error while indexing provision data \n"+ errProvisionIndex);
+                                        throw new Error("Error while indexing provision data \n"+ errProvisionIndex);
                                     }
 									mongo.closeDb();
 									profile.name = "DBTN_urac";
@@ -53,7 +53,7 @@ mongo.dropDatabase(function () {
 									mongo.dropDatabase(function () {
 										lib.addUsers(function (errUsers) {
                                             if(errUsers){
-                                                console.log("Error while importing users \n"+ errUsers);
+                                                throw new Error("Error while importing users \n"+ errUsers);
                                             }
 											lib.addGroups(function (errGroups) {
                                                 if(errGroups){
@@ -61,7 +61,7 @@ mongo.dropDatabase(function () {
                                                 }
 												lib.uracIndex(function (errUracIndex) {
                                                     if(errUracIndex){
-                                                        console.log("Error while indexing urac records \n"+ errUracIndex);
+                                                        throw new Error("Error while indexing urac records \n"+ errUracIndex);
                                                     }
 													mongo.closeDb();
 												});
