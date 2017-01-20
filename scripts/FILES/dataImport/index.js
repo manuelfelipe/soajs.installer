@@ -7,29 +7,62 @@
  *
  ***************************************************************/
 var soajs = require("soajs");
-var dataFolder = process.env.SOAJS_DATA_FOLDER;
-delete require.cache[process.env.SOAJS_PROFILE];
+var dataFolder = "/opt/soajs/node_modules/soajs.installer/data/startup/";
+delete require.cache["/opt/soajs/node_modules/soajs.installer/data/startup/profile.js"];
 
-var profile = require(process.env.SOAJS_PROFILE);
+var profile = require("/opt/soajs/node_modules/soajs.installer/data/startup/profile.js");
 profile.name = "core_provision";
 var mongo = new soajs.mongo(profile);
 
 mongo.dropDatabase(function () {
-	lib.addExtKeys(function () {
-		lib.addEnvs(function () {
-			lib.addProducts(function () {
-				lib.addServices(function () {
-					lib.addTenants(function () {
-						lib.addGitAccounts(function () {
-							lib.addAnalytics(function () {
-								lib.provisionIndex(function () {
+	lib.addExtKeys(function (errKeys) {
+        if(errKeys){
+            console.log("Error while importing external keys \n"+ errKeys);
+        }
+		lib.addEnvs(function (errEnvs) {
+			if(errEnvs){
+				console.log("Error while importing environments \n"+ errEnvs);
+			}
+			lib.addProducts(function (errProducts) {
+                if(errProducts){
+                    console.log("Error while importing products \n"+ errProducts);
+                }
+				lib.addServices(function (errServices) {
+                    if(errServices){
+                        console.log("Error while importing services \n"+ errServices);
+                    }
+					lib.addTenants(function (errTenants) {
+                        if(errTenants){
+                            console.log("Error while importing tenants \n"+ errTenants)
+                        }
+						lib.addGitAccounts(function (errGit) {
+                            if(errGit){
+                                console.log("Error while importing git accounts \n"+ errGit);
+                            }
+							lib.addAnalytics(function (errAnalytics) {
+                                if(errAnalytics){
+                                    console.log("Error while importing analytics \n"+ errAnalytics);
+                                }
+								lib.provisionIndex(function (errProvisionIndex) {
+                                    if(errProvisionIndex){
+                                        console.log("Error while indexing provision data \n"+ errProvisionIndex);
+                                    }
 									mongo.closeDb();
 									profile.name = "DBTN_urac";
 									mongo = new soajs.mongo(profile);
 									mongo.dropDatabase(function () {
-										lib.addUsers(function () {
-											lib.addGroups(function () {
-												lib.uracIndex(function () {
+										lib.addUsers(function (errUsers) {
+                                            if(errUsers){
+                                                console.log("Error while importing users \n"+ errUsers);
+                                            }
+											lib.addGroups(function (errGroups) {
+                                                if(errGroups){
+                                                    console.log("Error while importing groups \n"+ errGroups);
+                                                }
+												lib.uracIndex(function (errUracIndex) {
+                                                    if(errUracIndex){
+                                                        console.log("Error while indexing urac records \n"+ errUracIndex);
+                                                    }
 													mongo.closeDb();
 												});
 											});
