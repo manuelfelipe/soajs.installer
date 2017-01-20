@@ -399,7 +399,7 @@ var lib = {
 	configureKibana: function (deployer, serviceOptions, cb) {
 		var info = {};
 		var dockerServiceName = serviceOptions.Name;
-		var serviceGroup, serviceName, serviceEnv;
+		var serviceGroup, serviceName, serviceEnv, serviceType;
 		
 		if (serviceOptions.Labels) {
 			serviceGroup = serviceOptions.Labels['soajs.service.group'];
@@ -408,10 +408,10 @@ var lib = {
 		}
 		
 		if (serviceGroup === 'core') {
-			info.type = (serviceName === 'controller') ? 'controller' : 'service';
+			serviceType = (serviceName === 'controller') ? 'controller' : 'service';
 		}
 		else if (serviceGroup === 'nginx') {
-			info.type = 'nginx';
+			serviceName = 'nginx';
 		}
 		else {
 			return cb(null, true);
@@ -423,41 +423,187 @@ var lib = {
 		info.env = serviceEnv;
 		info.running = true;
 		info.recordType = 'container';
-		
 		lib.getServiceIPs(dockerServiceName, deployer, replicaCount, function (error, serviceIPs) {
 			if (error) return cb(error);
 			var options = {
 				"$and": [
 					{
 						"_type": {
-							"$in": ["dashboard", "visualization", "searches"]
+							"$in": ["dashboard", "visualization", "search"]
 						}
 					},
 					{
-						"_service": serviceGroup
+						"_service": serviceType
 					}
 				]
 				
 			};
 			var analyticsArray = [];
-			// var index_Pattern = {
-			// 	index: {
-			// 		_index: '.kibana',
-			// 		_type: 'index-pattern',
-			// 		_id: '4.6.2'
-			//
-			// 	}
-			// };
-			// serviceIPs.forEach(function (task_Name, key) {
-			// 	if (key == 0) {
-			// 		var body= {
-			// 			title: 'filebeat' + '-' + serviceIndex,
-			// 			timeFieldName: '@timestamp'
-			// 		};
-			// 		analyticsArray = analyticsArray.concat([index_Pattern, oneRecord._source]);
-			// 	}
-			// });
-
+			
+			serviceName.replace(/[\/*?"<>|,.-]/g, "_");
+			serviceEnv.replace(/[\/*?"<>|,.-]/g, "_");
+			//insert index-patterns to kibana
+			
+			serviceIPs.forEach(function (task_Name, key) {
+				task_Name.name = task_Name.name.replace(/[\/*?"<>|,.-]/g, "_");
+				
+				//filebeat-service-environment-taskname-*
+				
+				analyticsArray = analyticsArray.concat(
+					[
+						{
+							index: {
+								_index: '.kibana',
+								_type: 'index-pattern',
+								_id: 'filebeat-' + dockerServiceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*"
+							}
+						},
+						{
+							title: 'filebeat-' + dockerServiceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*",
+							timeFieldName: '@timestamp'
+						}
+					]
+				);
+				
+				analyticsArray = analyticsArray.concat(
+					[
+						{
+							index: {
+								_index: '.kibana',
+								_type: 'index-pattern',
+								_id: 'topbeat-' + dockerServiceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*"
+							}
+						},
+						{
+							title: 'topbeat-' + dockerServiceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*",
+							timeFieldName: '@timestamp'
+						}
+					]
+				);
+				
+				analyticsArray = analyticsArray.concat(
+					[
+						{
+							index: {
+								_index: '.kibana',
+								_type: 'index-pattern',
+								_id: '*-' + dockerServiceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*"
+							}
+						},
+						{
+							title: '*-' + dockerServiceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*",
+							timeFieldName: '@timestamp'
+						}
+					]
+				);
+				
+				if (key == 0) {
+					//filebeat-service-environment-*
+					
+					analyticsArray = analyticsArray.concat(
+						[
+							{
+								index: {
+									_index: '.kibana',
+									_type: 'index-pattern',
+									_id: 'filebeat-' + dockerServiceName + "-" + serviceEnv + "-" + "*",
+								}
+							},
+							{
+								title: 'filebeat-' + dockerServiceName + "-" + serviceEnv + "-" + "*",
+								timeFieldName: '@timestamp'
+							}
+						]
+					);
+					
+					analyticsArray = analyticsArray.concat(
+						[
+							{
+								index: {
+									_index: '.kibana',
+									_type: 'index-pattern',
+									_id: 'topbeat-' + dockerServiceName + "-" + serviceEnv + "-" + "*"
+								}
+							},
+							{
+								title: 'topbeat-' + dockerServiceName + "-" + serviceEnv + "-" + "*",
+								timeFieldName: '@timestamp'
+							}
+						]
+					);
+					
+					analyticsArray = analyticsArray.concat(
+						[
+							{
+								index: {
+									_index: '.kibana',
+									_type: 'index-pattern',
+									_id: '*-' + dockerServiceName + "-" + serviceEnv + "-" + "*"
+								}
+							},
+							{
+								title: '*-' + dockerServiceName + "-" + serviceEnv + "-" + "*",
+								timeFieldName: '@timestamp'
+							}
+						]
+					);
+					
+					//filebeat-service-environment-*
+					
+					
+					analyticsArray = analyticsArray.concat(
+						[
+							{
+								index: {
+									_index: '.kibana',
+									_type: 'index-pattern',
+									_id: 'filebeat-' + dockerServiceName + '-' + "*;"
+								}
+							},
+							{
+								title: 'filebeat-' + dockerServiceName + '-' + "*",
+								timeFieldName: '@timestamp'
+							}
+						]
+					);
+					
+					
+					analyticsArray = analyticsArray.concat(
+						[
+							{
+								index: {
+									_index: '.kibana',
+									_type: 'index-pattern',
+									_id: 'topbeat-' + dockerServiceName + "-" + "*"
+								}
+							},
+							{
+								title: 'topbeat-' + dockerServiceName + "-" + "*",
+								timeFieldName: '@timestamp'
+							}
+						]
+					);
+					
+					
+					analyticsArray = analyticsArray.concat(
+						[
+							{
+								index: {
+									_index: '.kibana',
+									_type: 'index-pattern',
+									_id: '*-' + dockerServiceName + "-" + "*"
+								}
+							},
+							{
+								title: '*-' + dockerServiceName + "-" + "*",
+								timeFieldName: '@timestamp'
+							}
+						]
+					);
+				}
+			});
+			
+			//insert visualization, search and deshbord rrecords per service  to kibana
 			mongo.find(analyticsCollection, options, function (error, records) {
 				if (error) {
 					return cb(error);
@@ -465,11 +611,10 @@ var lib = {
 				records.forEach(function (oneRecord) {
 					if (Array.isArray(serviceIPs) && serviceIPs.length > 0) {
 						serviceIPs.forEach(function (task_Name) {
-							oneRecord = JSON.stringify(oneRecord);
-							oneRecord = oneRecord.replace(/%taskName%/g, task_Name.name);
-							
+							task_Name.name = task_Name.name.replace(/[\/*?"<>|,.-]/g, "_");
+							var serviceIndex;
 							if (oneRecord._type === "visualization" || oneRecord._type === "search") {
-								var serviceIndex = serviceName + "-";
+								serviceIndex = dockerServiceName + "-";
 								if (oneRecord._injector === "service") {
 									serviceIndex = serviceIndex + "*";
 								}
@@ -479,8 +624,12 @@ var lib = {
 								else if (oneRecord._injector === "taskName") {
 									serviceIndex = serviceIndex + serviceEnv + "-" + task_Name.name + "-" + "*";
 								}
+							}
+							oneRecord = JSON.stringify(oneRecord);
+							if (serviceIndex) {
 								oneRecord = oneRecord.replace(/%serviceIndex%/g, serviceIndex);
 							}
+							oneRecord = oneRecord.replace(/%taskName%/g, task_Name.name);
 							oneRecord = JSON.parse(oneRecord);
 							var recordIndex = {
 								index: {
@@ -493,24 +642,30 @@ var lib = {
 						});
 					}
 				});
+				
+				function esBulk(array, cb) {
+					esClient.bulk(array, function (error, response) {
+						if (error) {
+							cb(error)
+						}
+						return cb(error, response);
+					});
+				}
+				
 				if (analyticsArray.length !== 0) {
 					esClient.checkIndex('.kibana', function (error, response) {
 						if (error) {
 							return cb(error);
 						}
 						if (response) {
-							esClient.bulk(analyticsArray, function (error, response) {
-								return cb(error, response);
-							});
+							esBulk(analyticsArray, cb);
 						}
 						else {
-							esClient.createIndex('.kibana', function (error, response) {
+							esClient.createIndex('.kibana', function (error) {
 								if (error) {
 									return cb(error);
 								}
-								esClient.bulk(analyticsArray, function (error, response) {
-									return cb(error, true);
-								});
+								esBulk(analyticsArray, cb);
 							})
 						}
 					});
@@ -518,7 +673,6 @@ var lib = {
 				else {
 					return cb(null, true);
 				}
-				
 			});
 		});
 	},
@@ -533,7 +687,7 @@ var lib = {
 				_id: '4.6.2'
 			}
 		};
-		var body = {"defaultIndex": "topbeat*"};
+		var body = {"defaultIndex": "topbeat-controller-*"};
 		var record = [index, body];
 		mongo.findOne(analyticsCollection, {"_type": "settings"}, function (err, result) {
 			if (err) {
