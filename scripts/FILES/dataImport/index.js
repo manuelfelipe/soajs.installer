@@ -7,10 +7,10 @@
  *
  ***************************************************************/
 var soajs = require("soajs");
-var dataFolder = "/opt/soajs/node_modules/soajs.installer/data/startup/";
-delete require.cache["/opt/soajs/node_modules/soajs.installer/data/startup/profile.js"];
+var dataFolder = process.env.SOAJS_DATA_FOLDER;
+delete require.cache[process.env.SOAJS_PROFILE];
 
-var profile = require("/opt/soajs/node_modules/soajs.installer/data/startup/profile.js");
+var profile = require(process.env.SOAJS_PROFILE);
 profile.name = "core_provision";
 var mongo = new soajs.mongo(profile);
 
