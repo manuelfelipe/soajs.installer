@@ -6,7 +6,7 @@ var topbeat = [
 		"_type": "dashboard",
 		"_shipper": "topbeat",
 		"_service": "service",
-		"_injector": "taskname",
+		"_injector": "service",
 		"_source": {
 			"title": "Metrics-%injector%",
 			"hits": 0,

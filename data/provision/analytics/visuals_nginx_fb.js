@@ -2,7 +2,7 @@
 //done
 var visuals = [
 	{
-		"id": "Agents-%taskName%",
+		"id": "Agents-%injector%",
 		"_type": "visualization",
 		"_service": "nginx",
 		"_shipper": "filebeat",
@@ -19,7 +19,7 @@ var visuals = [
 		}
 	},
 	{
-		"id": "Bytes-%taskName%",
+		"id": "Bytes-%injector%",
 		"_type": "visualization",
 		"_service": "nginx",
 		"_injector": "env",
@@ -36,7 +36,7 @@ var visuals = [
 		}
 	},
 	{
-		"id": "Top-10-Nginx-Errors-%taskName%",
+		"id": "Top-10-Nginx-Errors-%injector%",
 		"_type": "visualization",
 		"_service": "nginx",
 		"_shipper": "filebeat",
@@ -53,7 +53,7 @@ var visuals = [
 		}
 	},
 	{
-		"id": "Top-5-Methods-%taskName%",
+		"id": "Top-5-Methods-%injector%",
 		"_type": "visualization",
 		"_service": "nginx",
 		"_shipper": "filebeat",
@@ -70,7 +70,7 @@ var visuals = [
 		}
 	},
 	{
-		"id": "Top-10-Requests-%taskName%",
+		"id": "Top-10-Requests-%injector%",
 		"_type": "visualization",
 		"_service": "nginx",
 		"_shipper": "filebeat",
@@ -87,7 +87,7 @@ var visuals = [
 		}
 	},
 	{
-		"id": "Top-10-IP's-%taskName%",
+		"id": "Top-10-IP's-%injector%",
 		"_type": "visualization",
 		"_service": "nginx",
 		"_shipper": "filebeat",
@@ -104,7 +104,7 @@ var visuals = [
 		}
 	},
 	{
-		"id": "Top-10-Countries-%taskName%",
+		"id": "Top-10-Countries-%injector%",
 		"_type": "visualization",
 		"_service": "nginx",
 		"_shipper": "filebeat",
@@ -121,7 +121,7 @@ var visuals = [
 		}
 	},
 	{
-		"id": "To-5-Methods-%taskName%",
+		"id": "To-5-Methods-%injector%",
 		"_type": "visualization",
 		"_service": "nginx",
 		"_shipper": "filebeat",
@@ -138,7 +138,7 @@ var visuals = [
 		}
 	},
 	{
-		"id": "TimeStamp-%taskName%",
+		"id": "TimeStamp-%injector%",
 		"_type": "visualization",
 		"_service": "nginx",
 		"_shipper": "filebeat",
@@ -155,7 +155,7 @@ var visuals = [
 		}
 	},
 	{
-		"id": "request-count-%taskName%",
+		"id": "request-count-%injector%",
 		"_type": "visualization",
 		"_service": "nginx",
 		"_injector": "env",
@@ -172,7 +172,7 @@ var visuals = [
 		}
 	},
 	{
-		"id": "Map-%taskName%",
+		"id": "Map-%injector%",
 		"_type": "visualization",
 		"_service": "nginx",
 		"_shipper": "filebeat",
@@ -189,7 +189,7 @@ var visuals = [
 		}
 	},
 	{
-		"id": "Sum-of-bytes-%taskName%",
+		"id": "Sum-of-bytes-%injector%",
 		"_type": "visualization",
 		"_service": "nginx",
 		"_shipper": "filebeat",
@@ -206,7 +206,7 @@ var visuals = [
 		}
 	},
 	{
-		"id": "nginx-access-count-%taskName%",
+		"id": "nginx-access-count-%injector%",
 		"_type": "visualization",
 		"_service": "nginx",
 		"_shipper": "filebeat",
@@ -223,7 +223,7 @@ var visuals = [
 		}
 	},
 	{
-		"id": "error-count-%taskName%",
+		"id": "error-count-%injector%",
 		"_type": "visualization",
 		"_service": "nginx",
 		"_shipper": "filebeat",
@@ -240,7 +240,7 @@ var visuals = [
 		}
 	},
 	{
-		"id": "Response-Codes-%taskName%",
+		"id": "Response-Codes-%injector%",
 		"_type": "visualization",
 		"_service": "nginx",
 		"_shipper": "filebeat",
