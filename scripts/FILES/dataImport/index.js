@@ -109,18 +109,21 @@ var lib = {
 	"addAnalytics": function (cb) {
 		//var control_dashboard_fb = require(dataFolder + "analytics/control_dashboard_fb.js"); //pending peter
 		var dashboard_taskName_tb = require(dataFolder + "analytics/dashboard_taskName_tb.js");
+		var dashboard_service_tb = require(dataFolder + "analytics/dashboard_service_tb.js");
 		var mappings = require(dataFolder + "analytics/mappings.js");
 		var nginx_dashboard_fb = require(dataFolder + "analytics/nginx_dashboard_fb.js");
 		//var searches_control_tb = require(dataFolder + "analytics/searches_control_tb.js");//pending peter
 		var searches_taskName_tb = require(dataFolder + "analytics/searches_taskName_tb.js");
+		var searches_service_tb = require(dataFolder + "analytics/searches_service_tb.js");
 		//var service_dashboard_fb = require(dataFolder + "analytics/service_dashboard_fb.js");//pending peter
 		var settings = require(dataFolder + "analytics/settings.js");//pending peter
 		//var visuals_control_fb = require(dataFolder + "analytics/visuals_control_fb.js");
 		var visuals_nginx_fb = require(dataFolder + "analytics/visuals_nginx_fb.js");//pending peter
 		//var visuals_service_fb = require(dataFolder + "analytics/visuals_service_fb.js");//pending peter
 		var visuals_taskName_tb = require(dataFolder + "analytics/visuals_taskName_tb.js");
+		var visuals_service_tb = require(dataFolder + "analytics/visuals_service_tb.js");
 		
-		var records= dashboard_taskName_tb.concat(mappings).concat(nginx_dashboard_fb).concat(visuals_nginx_fb).concat(visuals_taskName_tb).concat(searches_taskName_tb);
+		var records= dashboard_taskName_tb.concat(dashboard_service_tb).concat(mappings).concat(nginx_dashboard_fb).concat(visuals_nginx_fb).concat(visuals_taskName_tb).concat(visuals_service_tb).concat(searches_taskName_tb).concat(searches_service_tb);
 		records.concat(visuals_nginx_fb);
 		records.concat(settings);
 		mongo.insert("analytics", records, cb);

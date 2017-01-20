@@ -6,7 +6,7 @@ var searches = [
 		"type": "search",
 		"_shipper": "topbeat",
 		"_service": "service",
-		"_injector": "taskname",
+		"_injector": "service",
 		"source": {
 			"sort": [
 				"@timestamp",
@@ -28,7 +28,7 @@ var searches = [
 		"id": "Proc-stats-%injector%",
 		"_type": "search",
 		"_shipper": "topbeat",
-		"_injector": "taskname",
+		"_injector": "service",
 		"_service": "service",
 		"_source": {
 			"sort": [
@@ -52,7 +52,7 @@ var searches = [
 		"_type": "search",
 		"_shipper": "topbeat",
 		"_service": "service",
-		"_injector": "taskname",
+		"_injector": "service",
 		"_source": {
 			"sort": [
 				"@timestamp",
@@ -80,7 +80,7 @@ var searches = [
 		"_type": "search",
 		"_shipper": "topbeat",
 		"_service": "service",
-		"_injector": "taskname",
+		"_injector": "service",
 		"_source": {
 			"sort": [
 				"@timestamp",
@@ -103,7 +103,7 @@ var searches = [
 		"_type": "search",
 		"_shipper": "topbeat",
 		"_service": "service",
-		"_injector": "taskname",
+		"_injector": "service",
 		"_source": {
 			"sort": [
 				"@timestamp",
