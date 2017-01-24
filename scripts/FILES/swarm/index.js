@@ -113,6 +113,9 @@ var lib = {
 			utilLog.log('External Mongo deployment detected, data containers will not be deployed ...');
 			return cb(null, true);
 		}
+		if (type === 'elk' && !config.analytics) {
+			return cb(null, true);
+		}
 		
 		async.eachSeries(services, function (oneService, callback) {
 			lib.deployService(deployer, oneService, callback);
@@ -127,12 +130,21 @@ var lib = {
 	},
 	
 	deployService: function (deployer, options, cb) {
+		if (options.Name === 'elasticsearch' && config.elasticsearch && config.elasticsearch.external) {
+			utilLog.log('External Elasticsearch deployment detected, Elasticsearch containers will not be deployed ...');
+			lib.configureElastic(deployer, options, cb);
+		}
 		deployer.createService(options, function (error, result) {
-			if (options.Name === 'elasticsearch') {
-				lib.configureElastic(deployer, options, cb);
+			if (config.analytics) {
+				if (options.Name === 'elasticsearch') {
+					lib.configureElastic(deployer, options, cb);
+				}
+				else {
+					lib.configureKibana(deployer, options, cb);
+				}
 			}
 			else {
-				lib.configureKibana(deployer, options, cb);
+				return cb(null, true);
 			}
 		});
 	},
@@ -302,29 +314,20 @@ var lib = {
 	},
 	
 	configureElastic: function (deployer, serviceOptions, cb) {
-		var elasticURL;
-		if (config.elasticsearch) {
-			elasticURL = 'http://';
-			if (config.elasticsearch.username && config.elasticsearch.password) {
-				elasticURL += config.elasticsearch.username + ':' + config.elasticsearch.password + '@';
-			}
-			elasticURL += config.elasticsearch.url + ':' + config.elasticsearch.port;
-		}
-		else {
-			elasticURL = 'http://' + config.docker.machineIP + ':' + serviceOptions.EndpointSpec.Ports[0].PublishedPort;
-		}
-		
 		lib.getServiceIPs(serviceOptions.Name, deployer, serviceOptions.Mode.Replicated.Replicas, function (error, elasticIPs) {
 			if (error) return cb(error);
 			
-			pingElastic(0, function () {
+			pingElastic(function () {
 				utilLog.log('Configuring elasticsearch ...');
 				async.parallel({
-					"mapping": function (callback) {
-						putMapping(callback);
+					"template": function (callback) {
+						putTemplate(callback);
 					},
 					"settings": function (callback) {
 						putSettings(callback);
+					},
+					"mapping": function (callback) {
+						putMapping(callback);
 					}
 					
 				}, function (err) {
@@ -334,17 +337,30 @@ var lib = {
 				});
 			});
 		});
-		function pingElastic(counter, cb) {
-			var options = {
-				method: 'GET',
-				uri: elasticURL
-			};
-			request(options, function (error, response, body) {
-				if (error && (error.code === 'ECONNREFUSED' || error.code === 'ECONNRESET')) {
-					lib.printProgress('Waiting for ' + serviceOptions.Name + ' server to become available', counter++);
+		
+		function pingElastic(cb) {
+			esClient.ping(function (error) {
+				if (error) {
+					lib.printProgress('Waiting for ' + serviceOptions.Name + ' server to become connected');
 					setTimeout(function () {
-						return pingElastic(counter, cb);
-					}, 1000);
+						pingElastic(cb);
+					}, 2000);
+				}
+				else {
+					infoElastic(function (err) {
+						return cb(err, true);
+					})
+				}
+			});
+		}
+		
+		function infoElastic(cb) {
+			esClient.db.info(function (error) {
+				if (error) {
+					lib.printProgress('Waiting for ' + serviceOptions.Name + ' server to become available');
+					setTimeout(function () {
+						infoElastic(cb);
+					}, 3000);
 				}
 				else {
 					return cb(null, true);
@@ -352,21 +368,57 @@ var lib = {
 			});
 		}
 		
-		function putMapping(cb) {
+		function putTemplate(cb) {
 			mongo.find('analytics', {_type: 'mapping'}, function (error, mappings) {
 				if (error) return cb(error);
 				async.each(mappings, function (oneMapping, callback) {
 					var options = {
-						method: 'PUT',
-						uri: elasticURL + '/_template/' + oneMapping._name + '/',
-						json: true,
-						body: oneMapping._json
+						'name': oneMapping._name,
+						'body': oneMapping._json
 					};
-					request(options, function (error, response, body) {
-						return callback(error, body);
+					esClient.db.indices.putTemplate(options, function (error) {
+						return callback(error, true);
 					});
 				}, cb);
 			});
+		}
+		
+		function putMapping(cb) {
+			var mapping = {
+				index: '.kibana',
+				type: 'dashboard',
+				body: {
+					"dashboard": {
+						"properties": {
+							"title": {"type": "string"},
+							"hits": {"type": "integer"},
+							"description": {"type": "string"},
+							"panelsJSON": {
+								"properties": {
+									"type": {"type": "string"},
+									"optionsJSON": {"type": "string"},
+									"uiStateJSON": {"type": "string"},
+									"version": {"type": "integer"},
+									"timeRestore": {"type": "boolean"},
+									"timeTo": {"type": "string"},
+									"timeFrom": {"type": "string"},
+									"kibanaSavedObjectMeta": {
+										"properties": {
+											"searchSourceJSON": {
+												"type": "string"
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			};
+			esClient.db.indices.create(mapping, function (error) {
+				return cb(error, true);
+			});
+			
 		}
 		
 		function putSettings(cb) {
@@ -403,22 +455,20 @@ var lib = {
 		
 		if (serviceOptions.Labels) {
 			serviceGroup = serviceOptions.Labels['soajs.service.group'];
-			serviceName = serviceOptions.Labels['soajs.service'];
+			serviceName = serviceOptions.Labels['soajs.service.repo.name'];
 			serviceEnv = serviceOptions.Labels['soajs.env'];
 		}
-		
 		if (serviceGroup === 'core') {
 			serviceType = (serviceName === 'controller') ? 'controller' : 'service';
 		}
 		else if (serviceGroup === 'nginx') {
+			serviceType = 'nginx';
 			serviceName = 'nginx';
 		}
 		else {
 			return cb(null, true);
 		}
-		
 		var replicaCount = serviceOptions.Mode.Replicated.Replicas;
-		
 		utilLog.log('Fetching analytics for ' + serviceName);
 		info.env = serviceEnv;
 		info.running = true;
@@ -440,10 +490,8 @@ var lib = {
 			};
 			var analyticsArray = [];
 			
-			serviceName.replace(/[\/*?"<>|,.-]/g, "_");
 			serviceEnv.replace(/[\/*?"<>|,.-]/g, "_");
 			//insert index-patterns to kibana
-			
 			serviceIPs.forEach(function (task_Name, key) {
 				task_Name.name = task_Name.name.replace(/[\/*?"<>|,.-]/g, "_");
 				
@@ -455,11 +503,11 @@ var lib = {
 							index: {
 								_index: '.kibana',
 								_type: 'index-pattern',
-								_id: 'filebeat-' + dockerServiceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*"
+								_id: 'filebeat-' + serviceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*"
 							}
 						},
 						{
-							title: 'filebeat-' + dockerServiceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*",
+							title: 'filebeat-' + serviceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*",
 							timeFieldName: '@timestamp'
 						}
 					]
@@ -471,11 +519,11 @@ var lib = {
 							index: {
 								_index: '.kibana',
 								_type: 'index-pattern',
-								_id: 'topbeat-' + dockerServiceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*"
+								_id: 'topbeat-' + serviceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*"
 							}
 						},
 						{
-							title: 'topbeat-' + dockerServiceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*",
+							title: 'topbeat-' + serviceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*",
 							timeFieldName: '@timestamp'
 						}
 					]
@@ -487,11 +535,11 @@ var lib = {
 							index: {
 								_index: '.kibana',
 								_type: 'index-pattern',
-								_id: '*-' + dockerServiceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*"
+								_id: '*-' + serviceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*"
 							}
 						},
 						{
-							title: '*-' + dockerServiceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*",
+							title: '*-' + serviceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*",
 							timeFieldName: '@timestamp'
 						}
 					]
@@ -506,11 +554,11 @@ var lib = {
 								index: {
 									_index: '.kibana',
 									_type: 'index-pattern',
-									_id: 'filebeat-' + dockerServiceName + "-" + serviceEnv + "-" + "*",
+									_id: 'filebeat-' + serviceName + "-" + serviceEnv + "-" + "*"
 								}
 							},
 							{
-								title: 'filebeat-' + dockerServiceName + "-" + serviceEnv + "-" + "*",
+								title: 'filebeat-' + serviceName + "-" + serviceEnv + "-" + "*",
 								timeFieldName: '@timestamp'
 							}
 						]
@@ -522,11 +570,11 @@ var lib = {
 								index: {
 									_index: '.kibana',
 									_type: 'index-pattern',
-									_id: 'topbeat-' + dockerServiceName + "-" + serviceEnv + "-" + "*"
+									_id: 'topbeat-' + serviceName + "-" + serviceEnv + "-" + "*"
 								}
 							},
 							{
-								title: 'topbeat-' + dockerServiceName + "-" + serviceEnv + "-" + "*",
+								title: 'topbeat-' + serviceName + "-" + serviceEnv + "-" + "*",
 								timeFieldName: '@timestamp'
 							}
 						]
@@ -538,11 +586,11 @@ var lib = {
 								index: {
 									_index: '.kibana',
 									_type: 'index-pattern',
-									_id: '*-' + dockerServiceName + "-" + serviceEnv + "-" + "*"
+									_id: '*-' + serviceName + "-" + serviceEnv + "-" + "*"
 								}
 							},
 							{
-								title: '*-' + dockerServiceName + "-" + serviceEnv + "-" + "*",
+								title: '*-' + serviceName + "-" + serviceEnv + "-" + "*",
 								timeFieldName: '@timestamp'
 							}
 						]
@@ -557,11 +605,11 @@ var lib = {
 								index: {
 									_index: '.kibana',
 									_type: 'index-pattern',
-									_id: 'filebeat-' + dockerServiceName + '-' + "*;"
+									_id: 'filebeat-' + serviceName + '-' + "*"
 								}
 							},
 							{
-								title: 'filebeat-' + dockerServiceName + '-' + "*",
+								title: 'filebeat-' + serviceName + '-' + "*",
 								timeFieldName: '@timestamp'
 							}
 						]
@@ -574,11 +622,11 @@ var lib = {
 								index: {
 									_index: '.kibana',
 									_type: 'index-pattern',
-									_id: 'topbeat-' + dockerServiceName + "-" + "*"
+									_id: 'topbeat-' + serviceName + "-" + "*"
 								}
 							},
 							{
-								title: 'topbeat-' + dockerServiceName + "-" + "*",
+								title: 'topbeat-' + serviceName + "-" + "*",
 								timeFieldName: '@timestamp'
 							}
 						]
@@ -591,11 +639,11 @@ var lib = {
 								index: {
 									_index: '.kibana',
 									_type: 'index-pattern',
-									_id: '*-' + dockerServiceName + "-" + "*"
+									_id: '*-' + serviceName + "-" + "*"
 								}
 							},
 							{
-								title: '*-' + dockerServiceName + "-" + "*",
+								title: '*-' + serviceName + "-" + "*",
 								timeFieldName: '@timestamp'
 							}
 						]
@@ -614,7 +662,7 @@ var lib = {
 							task_Name.name = task_Name.name.replace(/[\/*?"<>|,.-]/g, "_");
 							var serviceIndex;
 							if (oneRecord._type === "visualization" || oneRecord._type === "search") {
-								serviceIndex = dockerServiceName + "-";
+								serviceIndex = serviceName + "-";
 								if (oneRecord._injector === "service") {
 									serviceIndex = serviceIndex + "*";
 								}
@@ -629,7 +677,7 @@ var lib = {
 							if (serviceIndex) {
 								oneRecord = oneRecord.replace(/%serviceIndex%/g, serviceIndex);
 							}
-							oneRecord = oneRecord.replace(/%taskName%/g, task_Name.name);
+							oneRecord = oneRecord.replace(/%injector%/g, task_Name.name);
 							oneRecord = JSON.parse(oneRecord);
 							var recordIndex = {
 								index: {
@@ -638,6 +686,7 @@ var lib = {
 									_id: oneRecord.id
 								}
 							};
+							
 							analyticsArray = analyticsArray.concat([recordIndex, oneRecord._source]);
 						});
 					}
@@ -646,7 +695,7 @@ var lib = {
 				function esBulk(array, cb) {
 					esClient.bulk(array, function (error, response) {
 						if (error) {
-							cb(error)
+							return cb(error)
 						}
 						return cb(error, response);
 					});
@@ -681,33 +730,33 @@ var lib = {
 		//todo
 		//remove hard coded id
 		var index = {
-			index: {
-				_index: '.kibana',
-				_type: 'config',
-				_id: '4.6.2'
+			index: ".kibana",
+			type: 'config',
+			id: '4.6.2',
+			body: {
+				doc: {"defaultIndex": "topbeat-nginx-dashboard-*"}
 			}
 		};
-		var body = {"defaultIndex": "topbeat-controller-*"};
-		var record = [index, body];
 		mongo.findOne(analyticsCollection, {"_type": "settings"}, function (err, result) {
 			if (err) {
 				return cb(err);
 			}
 			if (result && result._json && result._json.enabled) {
-				esClient.bulk(record, function (err) {
+				esClient.db.update(index, function (err) {
 					if (err) {
-						console.log(err)
 						return cb(err);
 					}
-					return cb();
-				})
+					else {
+						return cb(null, true);
+					}
+				});
 			}
 			else {
-				return cb();
+				return cb(null, true);
 			}
 		});
-		
 	},
+	
 	closeDbCon: function (cb) {
 		mongo.closeDb();
 		if (esClient) {

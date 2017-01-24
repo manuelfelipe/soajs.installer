@@ -49,7 +49,9 @@ var config = {
 	labels: {
 		"soajs.env": "dashboard",
 		"soajs.service": "controller",
-		"soajs.service.group": "core"
+		"soajs.service.group": "core",
+		
+		"soajs.service.repo.name": "soajs_controller"
 	},
 	workingDir: '/opt/soajs/FILES/deployer/',
 	command: [

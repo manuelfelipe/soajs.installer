@@ -43,13 +43,15 @@ var config = {
 		{
             "Type": "volume",
             "Source": gConfig.docker.volumes.log.label,
-            "Target": gConfig.docker.volumes.log.path,
+            "Target": gConfig.docker.volumes.log.path
         }
     ],
     labels: {
         "soajs.env": "dashboard",
         "soajs.service": "urac",
-        "soajs.service.group": "core"
+        "soajs.service.group": "core",
+	    
+	    "soajs.service.repo.name": "soajs_urac"
     },
     workingDir: '/opt/soajs/FILES/deployer/',
     command: [

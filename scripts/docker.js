@@ -67,9 +67,11 @@ function deploySOAJS(deployer) {
 		async.eachSeries(config.deployGroups, function (oneGroup, callback) {
 			deploy(oneGroup, deployer, function (error, result) {
 				if (error) return callback(error);
-				
-				utilLog.log(oneGroup + ' services deployed successfully ...');
+				if (!(!config.analytics && oneGroup === 'elk')){
+					utilLog.log(oneGroup + ' services deployed successfully ...');
+				}
 				return callback(null, true);
+				
 			});
 		}, function (error, result) {
 			if (error) throw new Error (error);

@@ -316,6 +316,9 @@ module.exports = {
 		if (es_clusters) {
 			envData = envData.replace(/"%es_clusters%"/g, JSON.stringify(es_clusters, null, 2));
 		}
+		else {
+			envData = envData.replace(/"es_clusters": "%es_clusters%",/g, '');
+		}
 		envData = envData.replace(/%keySecret%/g, body.security.key);
 		envData = envData.replace(/%sessionSecret%/g, body.security.session);
 		envData = envData.replace(/%cookieSecret%/g, body.security.cookie);
@@ -472,16 +475,21 @@ module.exports = {
 	
 	"verifyEsIP": function (req, res, cb) {
 		var tempData = req.soajs.inputmaskData.es_clusters;
-		if (tempData.es_Ext) {
-			for (var i = 0; i < tempData.servers.length; i++) {
-				if (!tempData.servers[i].host)
-					return cb("noIP");
-				if (tempData.servers[i].host === "127.0.0.1")
-					return cb(tempData.servers[i].host)
+		if (tempData.analytics) {
+			if (tempData.es_Ext) {
+				for (var i = 0; i < tempData.servers.length; i++) {
+					if (!tempData.servers[i].host)
+						return cb("noIP");
+					if (tempData.servers[i].host === "127.0.0.1")
+						return cb(tempData.servers[i].host)
+				}
+			}
+			else {
+				req.soajs.inputmaskData.es_clusters.servers = [{"host": "127.0.0.1", "port": 9200}];
 			}
 		}
 		else {
-			req.soajs.inputmaskData.es_clusters.servers = [{"host": "127.0.0.1", "port": 9200}];
+			req.soajs.inputmaskData.es_clusters =null;
 		}
 		return cb(null, true);
 	},
@@ -531,13 +539,15 @@ module.exports = {
 				if (body.clusters.replicaSet) {
 					envs['SOAJS_MONGO_RSNAME'] = body.clusters.replicaSet;
 				}
+				envs['SOAJS_DEPLOY_ANALYTICS'] = body.deployment.deployAnalytics ? true : false;
+				
 				if (body.es_clusters && Object.keys(body.es_clusters).length > 0) {
 					envs['SOAJS_ELASTIC_EXTERNAL'] = body.clusters.es_Ext || false;
 					envs['SOAJS_ELASTIC_EXTERNAL_SERVERS'] = JSON.stringify(body.es_clusters.servers);
 					envs['SOAJS_ELASTIC_EXTERNAL_URLPARAM'] = JSON.stringify(body.es_clusters.URLParam);
 					envs['SOAJS_ELASTIC_EXTERNAL_EXTRAPARAM'] = JSON.stringify(body.es_clusters.extraParam);
 				}
-				else{
+				else {
 					envs['SOAJS_ELASTIC_EXTERNAL'] = false
 				}
 				if (body.deployment.docker.containerDir || body.deployment.docker.certificatesFolder) {
@@ -601,7 +611,7 @@ module.exports = {
 					envs['SOAJS_ELASTIC_EXTERNAL_URLPARAM'] = JSON.stringify(body.es_clusters.URLParam);
 					envs['SOAJS_ELASTIC_EXTERNAL_EXTRAPARAM'] = JSON.stringify(body.es_clusters.extraParam);
 				}
-				else{
+				else {
 					envs['SOAJS_ELASTIC_EXTERNAL'] = false
 				}
 				for (var e in envs) {

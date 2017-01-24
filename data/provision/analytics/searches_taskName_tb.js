@@ -3,11 +3,11 @@
 var searches = [
 	{
 		"id": "Filesystem-stats-%injector%",
-		"type": "search",
+		"_type": "search",
 		"_shipper": "topbeat",
 		"_service": "service",
 		"_injector": "taskname",
-		"source": {
+		"_source": {
 			"sort": [
 				"@timestamp",
 				"desc"

@@ -3,6 +3,7 @@
 var profile = require(process.env.SOAJS_PROFILE);
 var mongoHostname = profile.servers[0].host;
 var lib= {
+	"analytics": process.env.SOAJS_DEPLOY_ANALYTICS,
 	"masterDomain": process.env.MASTER_DOMAIN || 'soajs.org',
 	"apiPrefix": process.env.API_PREFIX || "dashboard-api",
 	"sitePrefix": process.env.SITE_PREFIX || "dashboard",
@@ -79,6 +80,7 @@ var lib= {
 };
 if (process.SOAJS_ELASTIC_EXTERNAL){
 	lib.elasticsearch = {
+		"external": process.SOAJS_ELASTIC_EXTERNAL,
 		"servers": JSON.parse(process.SOAJS_ELASTIC_EXTERNAL_SERVERS),
 		"URLParam": JSON.parse(process.SOAJS_ELASTIC_EXTERNAL_URLPARAM),
 		"extraParam": JSON.parse(process.SOAJS_ELASTIC_EXTERNAL_EXTRAPARAM)
