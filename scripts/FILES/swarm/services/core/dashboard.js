@@ -49,10 +49,13 @@ var config = {
         }
 	],
 	labels: {
-		"soajs.env": "dashboard",
-		"soajs.service": "dashboard",
+		"soajs.content": "true",
+		"soajs.env.code": "dashboard",
+
+		"soajs.service.name": "dashboard",
 		"soajs.service.group": "core",
-		
+		"soajs.service.version": "1",
+		"soajs.service.label": "dashboard_soajs_dashboard",
 		"soajs.service.repo.name": "soajs_dashboard"
 	},
 	workingDir: '/opt/soajs/FILES/deployer/',
@@ -60,7 +63,10 @@ var config = {
 		'bash',
 		'-c',
 		'./soajsDeployer.sh -T service -X deploy -L'
-	]
+	],
+	placement: [
+        'node.role == manager'
+    ]
 };
 
 module.exports = {
@@ -74,7 +80,9 @@ module.exports = {
 			"Args": config.command.splice(1),
 			"Mounts": config.mounts
 		},
-		"Placement": {},
+		"Placement": {
+			"Constraints": config.placement
+		},
 		"Resources": {
 			"Limits": {
 				"MemoryBytes": 209715200.0

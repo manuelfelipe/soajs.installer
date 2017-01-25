@@ -122,7 +122,7 @@ function deploy (group, deployer, cb) {
 function importProvisionData (dbServices, deployer, cb) {
 	utilLog.log ("Fetching data containers' IP addresses ... ");
 	utilLog.log ('This step might take some time if docker is currently pulling the containers\' image ...');
-	lib.getServiceIPs(config.mongo.services.dashboard.name, deployer, 1, function (error) {
+	lib.getServiceNames(config.mongo.services.dashboard.name, deployer, 1, function (error) {
 		if (error) return cb(error);
 		
 		setTimeout(function () {

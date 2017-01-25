@@ -126,7 +126,15 @@ var lib = {
 		utilLog.log('Importing provision data to:', profile.servers[0].host + ":" + profile.servers[0].port);
 		var dataImportFile = __dirname + "/../dataImport/index.js";
 		var execString = process.env.NODE_PATH + " " + dataImportFile;
-		exec(execString, cb);
+		exec(execString, function(error, stdout, stderr)  {
+			if (error) {
+				console.log(error);
+				console.log(stdout);
+				console.log(stderr);
+				return cb(error)
+			}
+			return cb(null, true)
+		});
 	},
 	
 	deployService: function (deployer, options, cb) {
@@ -184,7 +192,7 @@ var lib = {
 		});
 	},
 	
-	getServiceIPs: function (serviceName, deployer, replicaCount, counter, cb) {
+	getServiceNames: function (serviceName, deployer, replicaCount, counter, cb) {
 		if (typeof (counter) === 'function') {
 			cb = counter; //counter wasn't passed as param
 			counter = 0;
@@ -195,8 +203,6 @@ var lib = {
 				status: ['running']
 			}
 		};
-		
-		
 		deployer.listContainers(params, function (err, result) {
 			if (err) return cb(err);
 			
@@ -210,7 +216,7 @@ var lib = {
 				//Containers may not have been attached to network yet
 				lib.printProgress('Waiting for ' + serviceName + ' containers to become available', counter++);
 				setTimeout(function () {
-					return lib.getServiceIPs(serviceName, deployer, replicaCount, counter, cb);
+					return lib.getServiceNames(serviceName, deployer, replicaCount, counter, cb);
 				}, 1000);
 			}
 			else {
@@ -314,7 +320,7 @@ var lib = {
 	},
 	
 	configureElastic: function (deployer, serviceOptions, cb) {
-		lib.getServiceIPs(serviceOptions.Name, deployer, serviceOptions.Mode.Replicated.Replicas, function (error, elasticIPs) {
+		lib.getServiceNames(serviceOptions.Name, deployer, serviceOptions.Mode.Replicated.Replicas, function (error, elasticIPs) {
 			if (error) return cb(error);
 			
 			pingElastic(function () {
@@ -449,14 +455,13 @@ var lib = {
 	},
 	
 	configureKibana: function (deployer, serviceOptions, cb) {
-		var info = {};
 		var dockerServiceName = serviceOptions.Name;
 		var serviceGroup, serviceName, serviceEnv, serviceType;
 		
 		if (serviceOptions.Labels) {
 			serviceGroup = serviceOptions.Labels['soajs.service.group'];
 			serviceName = serviceOptions.Labels['soajs.service.repo.name'];
-			serviceEnv = serviceOptions.Labels['soajs.env'];
+			serviceEnv = serviceOptions.Labels['soajs.env.code'];
 		}
 		if (serviceGroup === 'core') {
 			serviceType = (serviceName === 'controller') ? 'controller' : 'service';
@@ -470,10 +475,7 @@ var lib = {
 		}
 		var replicaCount = serviceOptions.Mode.Replicated.Replicas;
 		utilLog.log('Fetching analytics for ' + serviceName);
-		info.env = serviceEnv;
-		info.running = true;
-		info.recordType = 'container';
-		lib.getServiceIPs(dockerServiceName, deployer, replicaCount, function (error, serviceIPs) {
+		lib.getServiceNames(dockerServiceName, deployer, replicaCount, function (error, serviceIPs) {
 			if (error) return cb(error);
 			var options = {
 				"$and": [
@@ -489,7 +491,6 @@ var lib = {
 				
 			};
 			var analyticsArray = [];
-			
 			serviceEnv.replace(/[\/*?"<>|,.-]/g, "_");
 			//insert index-patterns to kibana
 			serviceIPs.forEach(function (task_Name, key) {

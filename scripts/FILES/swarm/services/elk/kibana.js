@@ -17,8 +17,8 @@ var config = {
     exposedPorts: [
         {
             "Protocol": "tcp",
-            "PublishedPort": 5601,
-            "TargetPort": 5601
+            "PublishedPort": 32601,
+            "TargetPort": 32601
         }
     ]
 };

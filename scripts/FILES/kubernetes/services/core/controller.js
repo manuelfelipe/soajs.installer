@@ -34,10 +34,11 @@ var components = {
         "apiVersion": "extensions/v1beta1",
         "kind": "Deployment",
         "metadata": {
+            "soajs.content": "true",
             "name": "dashboard-controller",
             "labels": {
                 "soajs.env.code": "dashboard",
-	            "soajs.content": "true",
+
                 "soajs.service.name": "controller",
                 "soajs.service.group": "core",
                 "soajs.service.version": "1",
