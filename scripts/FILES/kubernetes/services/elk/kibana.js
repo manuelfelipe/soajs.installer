@@ -22,9 +22,9 @@ var components = {
 			"ports": [
 				{
 					"protocol": "TCP",
-					"port": 5601,
+					"port": 32601,
 					"targetPort": 5601,
-					"nodePort": ( 5000 + 5601 )
+					"nodePort": 32601
 				}
 			]
 		}
