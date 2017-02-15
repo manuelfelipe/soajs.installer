@@ -30,7 +30,12 @@ lib.getDeployer(config.kubernetes.config, function (error, deployer) {
                 });
             }, function (error, result) {
                 if (error) throw new Error (error);
-	            lib.closeDbCon(function () {});
+	            lib.setDefaultIndex(function (err){
+		            if (err){
+			            throw new Error (error)
+		            }
+		            lib.closeDbCon(function(){});
+	            });
             });
         }, 5000);
     });
@@ -72,11 +77,10 @@ function deploy (group, deployer, cb) {
 function importProvisionData (dbServices, deployer, cb) {
 	utilLog.log ("Fetching data containers' IP addresses ... ");
 	utilLog.log ('This step might take some time if kubernetes is currently pulling the containers\' image ...');
-    lib.getServiceIPs(config.mongo.services.dashboard.name, deployer, 1, function (error) {
+    lib.getServiceIPs(config.mongo.services.dashboard.name, deployer, 1, function (error, response) {
         if (error) return cb(error);
-	    
 		setTimeout(function () {
 			lib.importData(config.mongo.services, cb);
-		}, 5000);
+		}, 10000);
 	});
 }

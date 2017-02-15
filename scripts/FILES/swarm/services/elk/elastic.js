@@ -1,9 +1,9 @@
 'use strict';
-
+var gConfig = require("../../config.js");
 var config = {
     servName: 'elasticsearch',
     servReplica: 1,
-    servNetwork: [{Target: 'soajsnet'}],
+    servNetwork: [{Target: gConfig.docker.network}],
 
     image: {
         prefix: '',
@@ -21,7 +21,20 @@ var config = {
             "PublishedPort": 9200,
             "TargetPort": 9200
         }
-    ]
+    ],
+	mounts: [
+		{
+			"Type": "bind",
+			"ReadOnly": true,
+			"Source": gConfig.docker.socketPath,
+			"Target": gConfig.docker.socketPath
+		},
+		{
+			"Type": "volume",
+			"Source": gConfig.docker.volumes.log.label,
+			"Target": gConfig.docker.volumes.log.path
+		}
+	]
 };
 
 module.exports = {

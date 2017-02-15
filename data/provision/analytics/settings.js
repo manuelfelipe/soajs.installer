@@ -4,9 +4,10 @@ var settings = [
     {
         "_type": 'settings',
         "_name": 'Analytics Settings',
-        "_json": {
-            env: 'dashboard',
-            enabled: false
+        "_env": {
+	        dashboard: {
+		        active: false
+	        }
         }
     }
 ];

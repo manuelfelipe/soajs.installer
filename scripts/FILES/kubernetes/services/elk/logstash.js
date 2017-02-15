@@ -6,57 +6,59 @@ var components = {
 		"apiVersion": "v1",
 		"kind": "Service",
 		"metadata": {
-			"name": "dashboard-soajsdata",
+			"name": "logstash",
 			"labels": {
 				"soajs.content": "true",
 				"soajs.env.code": "dashboard",
-				"soajs.service.name": "soajsdata",
+				"soajs.service.name": "logstash",
 				"soajs.service.group": "elk",
-				"soajs.service.label": "dashboard-soajsdata"
+				"soajs.service.label": "logstash"
 			}
 		},
 		"spec": {
-			"type": "NodePort",
 			"selector": {
-				"soajs.service.label": "dashboard-soajsdata"
+				"soajs.service.label": "logstash"
 			},
-			"ports": []
+			"ports": [
+				{
+					"port": 12201,
+					"targetPort": 12201
+				}
+			]
 		}
 	},
 	deployment: {
 		"apiVersion": "extensions/v1beta1",
 		"kind": "Deployment",
 		"metadata": {
-			"name": "dashboard-soajsdata",
+			"name": "logstash",
 			"labels": {
 				"soajs.env.code": "dashboard",
-				"soajs.service.name": "soajsdata",
+				"soajs.service.name": "logstash",
 				"soajs.service.group": "elk",
-				"soajs.service.label": "dashboard-soajsdata"
+				"soajs.service.label": "logstash"
 			}
 		},
 		"spec": {
 			"replicas": gConfig.kubernetes.replicas,
 			"selector": {
 				"matchLabels": {
-					"soajs.service.label": "dashboard-soajsdata"
+					"soajs.service.label": "logstash"
 				}
 			},
 			"template": {
 				"metadata": {
-					"name": "dashboard-soajsdata",
+					"name": "logstash",
 					"labels": {
-						"soajs.env.code": "dashboard",
-						
-						"soajs.service.name": "soajsdata",
+						"soajs.service.name": "logstash",
 						"soajs.service.group": "elk",
-						"soajs.service.label": "dashboard-soajsdata"
+						"soajs.service.label": "logstash"
 					}
 				},
 				"spec": {
 					"containers": [
 						{
-							"name": "dashboard-soajsdata",
+							"name": "logstash",
 							"image": gConfig.imagePrefix + "/logstash",
 							"imagePullPolicy": "IfNotPresent",
 							"command": [

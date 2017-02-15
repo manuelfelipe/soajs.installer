@@ -315,9 +315,16 @@ module.exports = {
 		envData = envData.replace(/"%clusters%"/g, JSON.stringify(clusters, null, 2));
 		if (es_clusters) {
 			envData = envData.replace(/"%es_clusters%"/g, JSON.stringify(es_clusters, null, 2));
+			envData = envData.replace(/%es_database%/g, "esClient");
+			envData = envData.replace(/"%databases_value%"/g, JSON.stringify({
+				"cluster": "es_clusters",
+				"tenantSpecific": false
+			}, null, 2));
+			
 		}
 		else {
 			envData = envData.replace(/"es_clusters": "%es_clusters%",/g, '');
+			envData = envData.replace(/es_clusters": "%es_clusters%/g, '');
 		}
 		envData = envData.replace(/%keySecret%/g, body.security.key);
 		envData = envData.replace(/%sessionSecret%/g, body.security.session);
@@ -605,6 +612,8 @@ module.exports = {
 				if (body.deployment.kubernetes.containerDir || body.deployment.kubernetes.certificatesFolder) {
 					envs["SOAJS_DOCKER_CERTS_PATH"] = body.deployment.kubernetes.containerDir || body.deployment.kubernetes.certificatesFolder;
 				}
+				envs['SOAJS_DEPLOY_ANALYTICS'] = body.deployment.deployAnalytics ? true : false;
+				
 				if (body.es_clusters && Object.keys(body.es_clusters).length > 0) {
 					envs['SOAJS_ELASTIC_EXTERNAL'] = body.es_clusters.es_Ext || false;
 					envs['SOAJS_ELASTIC_EXTERNAL_SERVERS'] = JSON.stringify(body.es_clusters.servers);

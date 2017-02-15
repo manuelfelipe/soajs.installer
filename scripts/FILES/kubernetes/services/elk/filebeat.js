@@ -6,80 +6,55 @@
 var gConfig = require("../../config.js");
 
 var components = {
-	service: {
-		"apiVersion": "v1",
-		"kind": "Service",
-		"metadata": {
-			"name": "dashboard-soajsdata",
-			"labels": {
-				"soajs.content": "true",
-				"soajs.env.code": "dashboard",
-				"soajs.service.name": "soajsdata",
-				"soajs.service.group": "elk",
-				"soajs.service.label": "dashboard-soajsdata"
-			}
-		},
-		"spec": {
-			"type": "NodePort",
-			"selector": {
-				"soajs.service.label": "dashboard-soajsdata"
-			},
-			"ports": [
-				{
-					"protocol": "TCP",
-					"port": 12201,
-					"targetPort": 12201,
-					"nodePort": ( 12201 + 9200 )
-				}
-			]
-		}
-	},
 	deployment: {
 		"apiVersion": "extensions/v1beta1",
 		"kind": "Deployment",
 		"metadata": {
-			"name": "dashboard-soajsdata",
+			"name": "filebeat",
 			"labels": {
 				"soajs.env.code": "dashboard",
-				"soajs.service.name": "soajsdata",
+				"soajs.service.name": "filebeat",
 				"soajs.service.group": "elk",
-				"soajs.service.label": "dashboard-soajsdata"
+				"soajs.service.label": "filebeat"
 			}
 		},
 		"spec": {
-			"replicas": gConfig.kubernetes.replicas,
+			"replicas": 1,
 			"selector": {
 				"matchLabels": {
-					"soajs.service.label": "dashboard-soajsdata"
+					"soajs.service.label": "filebeat"
 				}
 			},
 			"template": {
 				"metadata": {
-					"name": "dashboard-soajsdata",
+					"name": "filebeat",
 					"labels": {
 						"soajs.env.code": "dashboard",
-						
-						"soajs.service.name": "soajsdata",
+						"soajs.service.name": "filebeat",
 						"soajs.service.group": "elk",
-						"soajs.service.label": "dashboard-soajsdata"
+						"soajs.service.label": "filebeat"
 					}
 				},
 				"spec": {
 					"containers": [
 						{
-							"name": "dashboard-soajsdata",
+							"name": "filebeat",
 							"image": gConfig.imagePrefix + "/filebeat",
 							"imagePullPolicy": "IfNotPresent",
 							"command": [
-								"bash",
-								"-c",
-								"chown filebeat:filebeat /etc/filebeat/filebeat.yml; filebeat -f /etc/filebeat/filebeat.yml"
+								"filebeat",  "-e",  "-c", "/etc/filebeat/filebeat.yml"
 							],
 							"ports": [
 								{
 									
 									"containerPort": 12201
 								}
+							],
+							"env": [
+								{
+									"name": "SOAJS_ENV",
+									"value": "dashboard"
+								},
 							],
 							"volumeMounts": [
 								{

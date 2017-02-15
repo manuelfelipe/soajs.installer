@@ -3,7 +3,7 @@ var gConfig = require("../../config.js");
 var config = {
     servName: 'logstash',
     servReplica: 1,
-    servNetwork: [{Target: 'soajsnet'}],
+    servNetwork: [{Target: gConfig.docker.network}],
 
     image: {
         prefix: gConfig.imagePrefix,

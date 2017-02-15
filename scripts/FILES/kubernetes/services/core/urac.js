@@ -14,7 +14,8 @@ var components = {
                 "soajs.service.name": "urac",
                 "soajs.service.group": "core",
                 "soajs.service.version": "2",
-                "soajs.service.label": "dashboard-urac"
+                "soajs.service.label": "dashboard-urac",
+	            "soajs.service.repo.name": "soajs_urac"
             }
         },
         "spec": {
@@ -42,7 +43,8 @@ var components = {
                 "soajs.service.name": "urac",
                 "soajs.service.group": "core",
                 "soajs.service.version": "2",
-                "soajs.service.label": "dashboard-urac"
+                "soajs.service.label": "dashboard-urac",
+	            "soajs.service.repo.name": "soajs_urac"
             }
         },
         "spec": {

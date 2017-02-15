@@ -1,9 +1,9 @@
 'use strict';
-
+var gConfig = require("../../config.js");
 var config = {
     servName: 'kibana',
     servReplica: 1,
-    servNetwork: [{Target: 'soajsnet'}],
+    servNetwork: [{Target: gConfig.docker.network}],
 
     image: {
         prefix: '',

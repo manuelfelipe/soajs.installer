@@ -7,7 +7,6 @@ var soajs = require('soajs');
 var request = require('request');
 
 var config = require('./config.js');
-var folder = config.folder;
 delete require.cache[config.profile];
 var profile = require(config.profile);
 var mongo = new soajs.mongo(profile);
@@ -147,7 +146,7 @@ var lib = {
 				if (options.Name === 'elasticsearch') {
 					lib.configureElastic(deployer, options, cb);
 				}
-				else {
+				else if (options.Name === 'kibana') {
 					lib.configureKibana(deployer, options, cb);
 				}
 			}
@@ -421,9 +420,22 @@ var lib = {
 					}
 				}
 			};
-			esClient.db.indices.create(mapping, function (error) {
-				return cb(error, true);
+			var options= {
+				index: '.kibana',
+				type: 'dashboard'
+			};
+		
+			esClient.db.indices.existsType(options, function (error) {
+				if (error || !result) {
+					esClient.db.indices.create(mapping, function (error) {
+						return cb(error, true);
+					});
+				}
+				else{
+					return cb(null, true);
+				}
 			});
+				
 			
 		}
 		
@@ -432,13 +444,13 @@ var lib = {
 				"$and": [
 					{
 						"_type": "settings"
-					},
-					{
-						"_json.env": "dashboard"
 					}
 				]
 			};
-			var criteria = {"$set": {"_json.enabled": "true"}};
+			var criteria = {"$set": {"_env.dashboard": true}};
+			if (dbConfiguration.dbs.es_clusters){
+				criteria["$set"]._cluster = dbConfiguration.dbs.es_clusters;
+			}
 			var options = {
 				"safe": true,
 				"multi": false,
@@ -730,32 +742,41 @@ var lib = {
 	setDefaultIndex: function (cb) {
 		//todo
 		//remove hard coded id
+		
 		var index = {
 			index: ".kibana",
 			type: 'config',
-			id: '4.6.2',
 			body: {
 				doc: {"defaultIndex": "topbeat-nginx-dashboard-*"}
 			}
 		};
-		mongo.findOne(analyticsCollection, {"_type": "settings"}, function (err, result) {
+		var condition = {
+			index: ".kibana",
+			type: 'config'
+		};
+		esClient.db.search(condition, function (err, res){
 			if (err) {
 				return cb(err);
 			}
-			if (result && result._json && result._json.enabled) {
-				esClient.db.update(index, function (err) {
+			if (res && res.hits && res.hits.hits && res.hits.hits.length> 0){
+				mongo.findOne(analyticsCollection, {"_type": "settings"}, function (err, result) {
 					if (err) {
 						return cb(err);
+					}
+					if (result && result._env && result._env.dashboard) {
+						index.id = res.hits.hits[0]._id;
+						esClient.db.update(index, cb);
 					}
 					else {
 						return cb(null, true);
 					}
 				});
 			}
-			else {
+			else{
 				return cb(null, true);
 			}
 		});
+		
 	},
 	
 	closeDbCon: function (cb) {

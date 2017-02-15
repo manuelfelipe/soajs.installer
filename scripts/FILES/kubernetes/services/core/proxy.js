@@ -14,7 +14,8 @@ var components = {
                 "soajs.service.name": "proxy",
                 "soajs.service.group": "core",
                 "soajs.service.version": "1",
-                "soajs.service.label": "dashboard-proxy"
+                "soajs.service.label": "dashboard-proxy",
+	            "soajs.service.repo.name": "soajs_prx"
             }
         },
         "spec": {
@@ -42,7 +43,8 @@ var components = {
                 "soajs.service.name": "proxy",
                 "soajs.service.group": "core",
                 "soajs.service.version": "1",
-                "soajs.service.label": "dashboard-proxy"
+                "soajs.service.label": "dashboard-proxy",
+	            "soajs.service.repo.name": "soajs_prx"
             }
         },
         "spec": {

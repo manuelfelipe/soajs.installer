@@ -48,14 +48,12 @@ var dashboard = {
             }
         },
         "databases": {
+	        "%es_database%": "%databases_value%",
             "urac": {
                 "cluster": "dash_cluster",
                 "tenantSpecific": true
-            },
-	        "esClient": {
-		        "cluster": "es_clusters",
-		        "tenantSpecific": false
-	        }
+            }
+	        
         }
     },
     "services": {

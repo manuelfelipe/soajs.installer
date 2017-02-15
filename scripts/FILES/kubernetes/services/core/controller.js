@@ -14,7 +14,8 @@ var components = {
                 "soajs.service.name": "controller",
                 "soajs.service.group": "core",
                 "soajs.service.version": "1",
-                "soajs.service.label": "dashboard-controller"
+                "soajs.service.label": "dashboard-controller",
+	            "soajs.service.repo.name": "soajs_controller"
             }
         },
         "spec": {
@@ -42,7 +43,8 @@ var components = {
                 "soajs.service.name": "controller",
                 "soajs.service.group": "core",
                 "soajs.service.version": "1",
-                "soajs.service.label": "dashboard-controller"
+                "soajs.service.label": "dashboard-controller",
+	            "soajs.service.repo.name": "soajs_controller"
             }
         },
         "spec": {

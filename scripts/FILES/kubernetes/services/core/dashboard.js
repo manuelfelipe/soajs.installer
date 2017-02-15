@@ -14,7 +14,8 @@ var components = {
                 "soajs.service.name": "dashboard",
                 "soajs.service.group": "core",
                 "soajs.service.version": "1",
-                "soajs.service.label": "dashboard-dashboard"
+                "soajs.service.label": "dashboard-dashboard",
+	            "soajs.service.repo.name": "soajs_dashboard"
             }
         },
         "spec": {
@@ -42,7 +43,8 @@ var components = {
                 "soajs.service.name": "dashboard",
                 "soajs.service.group": "core",
                 "soajs.service.version": "1",
-                "soajs.service.label": "dashboard-dashboard"
+                "soajs.service.label": "dashboard-dashboard",
+	            "soajs.service.repo.name": "soajs_dashboard"
             }
         },
         "spec": {
