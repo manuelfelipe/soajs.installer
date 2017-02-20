@@ -2,7 +2,7 @@
 var gConfig = require("../../config.js");
 
 var dashUISrc = {
-	branch: gConfig.dashUISrc.branch //
+	branch: gConfig.dashUISrc.branch
 };
 
 var customUISrc = {
@@ -17,9 +17,12 @@ var deployerExtra = (ssl) ? ' -s' : '';
 
 var masterDomain = gConfig.masterDomain;
 
-var controllerServiceName = 'dashboard_soajs_controller';
+var controllerServiceName = 'dashboard-controller';
 var controllerServicePort = '4000';
 
+var gitProvider = (process.env.SOAJS_GIT_PROVIDER) ? " -G " + process.env.SOAJS_GIT_PROVIDER : "";
+var gitSource = (process.env.SOAJS_GIT_SOURCE) ? " -g " + process.env.SOAJS_GIT_SOURCE : "";
+	
 var config = {
 	servName: 'dashboard_nginx',
 	servReplica: parseInt(gConfig.docker.replicas),
@@ -28,7 +31,7 @@ var config = {
 			Target: gConfig.docker.network
 		}
 	],
-	
+
 	image: {
 		prefix: gConfig.imagePrefix,
 		name: 'nginx'
@@ -37,22 +40,17 @@ var config = {
 		'SOAJS_ENV=dashboard',
 
 		'SOAJS_DEPLOY_HA=swarm',
+		'SOAJS_HA_NAME={{.Task.Name}}',
 
 		'SOAJS_GIT_DASHBOARD_BRANCH=' + dashUISrc.branch,
 		'SOAJS_NX_API_DOMAIN=' + gConfig.apiPrefix + '.' + masterDomain,
 		'SOAJS_NX_SITE_DOMAIN=' + gConfig.sitePrefix + '.' + masterDomain,
-		
+
 		'SOAJS_NX_CONTROLLER_NB=1',
 		'SOAJS_NX_CONTROLLER_IP_1=' + controllerServiceName,
 		'SOAJS_NX_CONTROLLER_PORT_1=' + controllerServicePort
 	],
 	mounts: [
-        {
-            "Type": "bind",
-            "ReadOnly": true,
-            "Source": gConfig.docker.socketPath,
-            "Target": gConfig.docker.socketPath
-        },
 		{
             "Type": "volume",
             "Source": gConfig.docker.volumes.log.label,
@@ -62,7 +60,7 @@ var config = {
 	labels: {
 		"soajs.content": "true",
 		"soajs.env.code": "dashboard",
-
+		"soajs.service.type": "nginx",
 		"soajs.service.name": "nginx",
 		"soajs.service.group": "nginx",
 		"soajs.service.label": "dashboard_nginx"
@@ -71,7 +69,8 @@ var config = {
 	command: [
 		'bash',
 		'-c',
-		'./soajsDeployer.sh -T nginx -X deploy' + deployerExtra
+		// '/etc/init.d/filebeat start; /etc/init.d/topbeat start; ./soajsDeployer.sh -T nginx -X deploy' + deployerExtra
+		'./soajsDeployer.sh -T nginx -X deploy' + deployerExtra + gitSource + gitProvider
 	],
 	exposedPorts: [
 		{
@@ -90,10 +89,11 @@ var config = {
 if (customUISrc.repo && customUISrc.owner) {
 	config.env.push('SOAJS_GIT_REPO=' + customUISrc.repo);
 	config.env.push('SOAJS_GIT_OWNER=' + customUISrc.owner);
-	
+
 	if (customUISrc.branch) {
-		config.env.push('SOAJS_GIT_DASHBOARD_BRANCH=' + gConfig.git.branch || "develop");
+		config.env.push('SOAJS_GIT_BRANCH=' + customUISrc.branch || "develop");
 	}
+	
 	if (customUISrc.token) {
 		config.env.push('SOAJS_GIT_TOKEN=' + customUISrc.token);
 	}

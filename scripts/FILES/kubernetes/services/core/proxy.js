@@ -12,7 +12,8 @@ var components = {
                 "soajs.env.code": "dashboard",
 
                 "soajs.service.name": "proxy",
-                "soajs.service.group": "core",
+                "soajs.service.group": "soajs-core-services",
+                "soajs.service.type": "service",
                 "soajs.service.version": "1",
                 "soajs.service.label": "dashboard-proxy",
 	            "soajs.service.repo.name": "soajs_prx"
@@ -24,9 +25,16 @@ var components = {
             },
             "ports": [
                 {
+                    "name": "service-port",
                     "protocol": "TCP",
                     "port": 4009,
                     "targetPort": 4009
+                },
+                {
+                    "name": "maintenance-port",
+                    "protocol": "TCP",
+                    "port": 5009,
+                    "targetPort": 5009
                 }
             ]
         }
@@ -41,7 +49,8 @@ var components = {
                 "soajs.env.code": "dashboard",
 
                 "soajs.service.name": "proxy",
-                "soajs.service.group": "core",
+                "soajs.service.group": "soajs-core-services",
+                "soajs.service.type": "service",
                 "soajs.service.version": "1",
                 "soajs.service.label": "dashboard-proxy",
 	            "soajs.service.repo.name": "soajs_prx"
@@ -62,7 +71,8 @@ var components = {
                         "soajs.env.code": "dashboard",
 
                         "soajs.service.name": "proxy",
-                        "soajs.service.group": "core",
+                        "soajs.service.group": "soajs-core-services",
+                        "soajs.service.type": "service",
                         "soajs.service.version": "1",
                         "soajs.service.label": "dashboard-proxy"
                     }
@@ -72,7 +82,7 @@ var components = {
                         {
                             "name": "dashboard-proxy",
                             "image": gConfig.imagePrefix + "/soajs",
-                            "imagePullPolicy": "IfNotPresent",
+                            "imagePullPolicy": gConfig.imagePullPolicy,
                             "workingDir": "/opt/soajs/FILES/deployer/",
                             "command": ["./soajsDeployer.sh"],
                             "args": ["-T", "service", "-X", "deploy", "-L"],

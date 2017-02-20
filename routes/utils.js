@@ -55,86 +55,92 @@ module.exports = {
 				return cb(null);
 			}
 			else {
-				delete require.cache[require.resolve(dataDir + "custom.js")];
-				var customData = require(dataDir + "custom.js");
-				if (section) {
-					return cb(customData[section]);
+				try {
+					delete require.cache[require.resolve(dataDir + "custom.js")];
+					var customData = require(dataDir + "custom.js");
+					if (section) {
+						return cb(customData[section]);
+					}
+					else {
+						return cb(customData);
+					}
 				}
-				else {
-					return cb(customData);
+				catch (e){
+					return cb(null);
 				}
 			}
 		});
 	},
-	
-	"loadProfile": function (cb) {
-		fs.exists(dataDir + "/startup/profile.js", function (exists) {
-			if (!exists) {
-				return cb(null, false);
-			}
-			else {
-				delete require.cache[require.resolve(dataDir + "/startup/profile.js")];
-				var customData = require(dataDir + "/startup/profile.js");
-				return cb(customData);
-			}
-		});
-	},
-	
+
+   /* "loadProfile": function (cb) {
+        fs.exists(dataDir + "/startup/profile.js", function (exists) {
+            if (!exists) {
+                return cb(null, false);
+            }
+            else {
+                delete require.cache[require.resolve(dataDir + "/startup/profile.js")];
+                var customData = require(dataDir + "/startup/profile.js");
+                return cb(customData);
+            }
+        });
+    },
+
 	"getDeploymentInfo": function (profile, cb) {
-		//if mongo is a single server
-		if (profile.extraParam.server) {
-			profile.extraParam.server.socketOptions = {};
-			profile.extraParam.server.socketOptions.connectTimeoutMS = 2000;
-			profile.extraParam.server.socketOptions.socketTimeoutMS = 2000;
-			
-			profile.extraParam.server.autoReconnect = false;
-			profile.extraParam.server.reconnectTries = 1;
-			profile.extraParam.server.reconnectInterval = 100;
-		}
-		//if mongo is a replica set
-		else if (profile.extraParam.replSet) {
-			profile.extraParam.replSet.socketOptions = {};
-			profile.extraParam.replSet.socketOptions.connectTimeoutMS = 2000;
-			profile.extraParam.replSet.socketOptions.socketTimeoutMS = 2000;
-			
-			profile.extraParam.replSet.autoReconnect = false;
-			profile.extraParam.replSet.reconnectTries = 1;
-			profile.extraParam.replSet.reconnectInterval = 100;
-		}
-		//if mongos
-		else if (profile.extraParam.mongos) {
-			profile.extraParam.mongos.socketOptions = {};
-			profile.extraParam.mongos.socketOptions.connectTimeoutMS = 2000;
-			profile.extraParam.mongos.socketOptions.socketTimeoutMS = 2000;
-			
-			profile.extraParam.mongos.autoReconnect = false;
-			profile.extraParam.mongos.reconnectTries = 1;
-			profile.extraParam.mongos.reconnectInterval = 100;
-		}
-		
-		profile.URLParam.wtimeoutMS = 2000;
-		profile.URLParam.connectTimeoutMS = 2000;
-		profile.URLParam.socketTimeoutMS = 2000;
-		
+        //if mongo is a single server
+	    if(profile.extraParam.server){
+            profile.extraParam.server.socketOptions={};
+            profile.extraParam.server.socketOptions.connectTimeoutMS = 2000;
+            profile.extraParam.server.socketOptions.socketTimeoutMS = 2000;
+
+            profile.extraParam.server.autoReconnect = false;
+            profile.extraParam.server.reconnectTries = 1;
+            profile.extraParam.server.reconnectInterval = 100;
+        }
+        //if mongo is a replica set
+        else if(profile.extraParam.replSet){
+            profile.extraParam.replSet.socketOptions={};
+            profile.extraParam.replSet.socketOptions.connectTimeoutMS = 2000;
+            profile.extraParam.replSet.socketOptions.socketTimeoutMS = 2000;
+
+            profile.extraParam.replSet.autoReconnect = false;
+            profile.extraParam.replSet.reconnectTries = 1;
+            profile.extraParam.replSet.reconnectInterval = 100;
+        }
+        //if mongos
+        else if(profile.extraParam.mongos){
+            profile.extraParam.mongos.socketOptions={};
+            profile.extraParam.mongos.socketOptions.connectTimeoutMS = 2000;
+            profile.extraParam.mongos.socketOptions.socketTimeoutMS = 2000;
+
+            profile.extraParam.mongos.autoReconnect = false;
+            profile.extraParam.mongos.reconnectTries = 1;
+            profile.extraParam.mongos.reconnectInterval = 100;
+        }
+
+        profile.URLParam.wtimeoutMS = 2000;
+        profile.URLParam.connectTimeoutMS = 2000;
+        profile.URLParam.socketTimeoutMS = 2000;
+
 		var mongo = new soajs.mongo(profile);
-		
-		var condition = {"code": "DASHBOARD"};
-		mongo.findOne("environment", condition, function (error, response) {
-			if (error) {
-				return cb(error);
+
+        var condition = {"code": "DASHBOARD"};
+        mongo.findOne("environment", condition, function(error, response){
+        	if(error){
+        		return cb(error);
 			}
-			else if (!response) {
-				return cb(null, {"deployType": null});
-			}
-			else {
-				var data = {
-					"deployType": response.deployer.selected
+			else if(!response){
+        		return cb(null, {"deployType": null });
+	        }
+			else{
+        		var data = {
+        			"deployType": response.deployer.selected
 				};
 				return cb(null, data);
 			}
 		});
 	},
-	
+    */
+
 	"generateExtKeys": function (opts, cb) {
 		//soajs encryption engine
 		var module = require("soajs/modules/soajs.core").key;
@@ -268,7 +274,6 @@ module.exports = {
 		delete clusters.replicaSet;
 		delete clusters.mongoExt;
 		delete clusters.es_Ext;
-		
 		profileData += 'module.exports = ' + JSON.stringify(clusters, null, 2) + ';';
 		fs.writeFileSync(folder + "profile.js", profileData, "utf8");
 		
@@ -302,10 +307,10 @@ module.exports = {
 		envData = envData.replace(/%domain%/g, body.gi.domain);
 		envData = envData.replace(/%site%/g, body.gi.site);
 		envData = envData.replace(/%api%/g, body.gi.api);
-		if (body.deployment.deployType === 'manual') {
+		if(body.deployment.deployType === 'manual'){
 			envData = envData.replace(/%wrkDir%/g, body.gi.wrkDir);
 		}
-		else {
+		else{
 			envData = envData.replace(/%wrkDir%/g, "/opt");
 		}
 		envData = envData.replace(/%deployType%/g, body.deployment.deployType);
@@ -350,6 +355,7 @@ module.exports = {
 		fs.unlinkSync(folder + "tenants/info.js");
 	},
 	
+	
 	"unifyData": function (def, over) {
 		if (over.gi) {
 			for (var i in def.gi) {
@@ -384,15 +390,6 @@ module.exports = {
 				def.clusters[j] = over.clusters[j];
 			}
 		}
-		
-		if (over.es_clusters) {
-			for (var j in over.es_clusters) {
-				if (!def.es_clusters) {
-					def.es_clusters = {};
-				}
-				def.es_clusters[j] = over.es_clusters[j];
-			}
-		}
 		return def;
 	},
 	
@@ -408,8 +405,8 @@ module.exports = {
 					return cb(err);
 				}
 				
-				var runner = fs.createWriteStream(path.normalize(__dirname + "/../scripts/manual-deploy.sh"));
-				runner.write("#!/bin/bash" + os.EOL + os.EOL);
+				var filename = path.normalize(__dirname + "/../scripts/manual-deploy.sh");
+				var output = "#!/bin/bash" + os.EOL + os.EOL;
 				var envs = {
 					"NODE_PATH": nodePath,
 					"NPM_PATH": npmPath,
@@ -429,74 +426,60 @@ module.exports = {
 				}
 				
 				for (var e in envs) {
-					runner.write("export " + e + "=" + envs[e] + os.EOL);
+					output += "export " + e + "=" + envs[e] + os.EOL;
 				}
 				
-				runner.write(os.EOL + "#Run Deployment Script ..." + os.EOL);
-				runner.write(nodePath + " " + path.normalize(__dirname + "/../scripts/manual.js") + os.EOL);
-				runner.write(os.EOL + "#Start Nginx ..." + os.EOL);
+				output += os.EOL + "#Run Deployment Script ..." + os.EOL;
+				output += nodePath + " " + path.normalize(__dirname + "/../scripts/manual.js") + os.EOL;
+				output += os.EOL + "#Start Nginx ..." + os.EOL;
 				
 				if (process.platform === 'darwin') {
-					runner.write("brew services start nginx" + os.EOL);
+					output += "brew services start nginx" + os.EOL;
 				}
 				else {
-					runner.write("sudo service nginx start" + os.EOL);
+					output += "sudo service nginx start" + os.EOL;
 				}
 				
-				runner.write(os.EOL + "ps aux | grep node" + os.EOL);
-				runner.write("ps aux | grep nginx" + os.EOL);
-				runner.end();
+				output += os.EOL + "ps aux | grep node" + os.EOL;
+				output += "ps aux | grep nginx" + os.EOL;
 				
-				fs.chmodSync(path.normalize(__dirname + "/../scripts/manual-deploy.sh"), "0755");
-				
-				return cb(null, {
-					"hosts": {
-						"api": "127.0.0.1 " + body.gi.api + "." + body.gi.domain,
-						"site": "127.0.0.1 " + body.gi.site + "." + body.gi.domain
-					},
-					"ui": "http://" + body.gi.site + "." + body.gi.domain,
-					"cmd": "sudo " + path.normalize(__dirname + "/../scripts/manual-deploy.sh")
+				fs.writeFile(filename, output, function(err){
+					if(err) {
+						return cb(err);
+					}
+					fs.chmod(path.normalize(__dirname + "/../scripts/manual-deploy.sh"), "0755", function(errChmod){
+						if(errChmod) {
+							return cb(errChmod);
+						}
+						return cb(null, {
+							"hosts": {
+								"api": "127.0.0.1 " + body.gi.api + "." + body.gi.domain,
+								"site": "127.0.0.1 " + body.gi.site + "." + body.gi.domain
+							},
+							"ui": "http://" + body.gi.site + "." + body.gi.domain,
+							"cmd": "sudo " + path.normalize(__dirname + "/../scripts/manual-deploy.sh")
+						});
+					});
 				});
 			});
 		});
 	},
 	
-	"verifyMongoIP": function (req, res, cb) {
+	"verifyMongoIP": function(req, res, cb){
 		var tempData = req.soajs.inputmaskData.clusters;
-		if (tempData.mongoExt) {
-			for (var i = 0; i < tempData.servers.length; i++) {
-				if (!tempData.servers[i].host)
+		if(tempData.mongoExt){
+			for(var i = 0; i < tempData.servers.length; i++){
+				if(!tempData.servers[i].host)
 					return cb("noIP");
-				if (tempData.servers[i].host === "127.0.0.1")
+				if(tempData.servers[i].host === "127.0.0.1")
 					return cb(tempData.servers[i].host)
 			}
 		}
-		else {
-			req.soajs.inputmaskData.clusters.servers = [{"host": "127.0.0.1", "port": 27017}];
+		else{
+			req.soajs.inputmaskData.clusters.servers = [{"host": "127.0.0.1", "port":27017}];
 			delete req.soajs.inputmaskData.clusters.isReplica;
 			delete req.soajs.inputmaskData.clusters.replicaSet;
 			req.soajs.inputmaskData.clusters.credentials = null;
-		}
-		return cb(null, true);
-	},
-	
-	"verifyEsIP": function (req, res, cb) {
-		var tempData = req.soajs.inputmaskData.es_clusters;
-		if (tempData.analytics) {
-			if (tempData.es_Ext) {
-				for (var i = 0; i < tempData.servers.length; i++) {
-					if (!tempData.servers[i].host)
-						return cb("noIP");
-					if (tempData.servers[i].host === "127.0.0.1")
-						return cb(tempData.servers[i].host)
-				}
-			}
-			else {
-				req.soajs.inputmaskData.es_clusters.servers = [{"host": "127.0.0.1", "port": 9200}];
-			}
-		}
-		else {
-			req.soajs.inputmaskData.es_clusters =null;
 		}
 		return cb(null, true);
 	},
@@ -508,12 +491,12 @@ module.exports = {
 			}
 			
 			if (driver === 'docker') {
-				var runner = fs.createWriteStream(path.normalize(__dirname + "/../scripts/swarm-deploy.sh"));
-				runner.write("#!/bin/bash" + os.EOL + os.EOL);
+				var filename = path.normalize(__dirname + "/../scripts/swarm-deploy.sh");
+				var output = "#!/bin/bash" + os.EOL + os.EOL;
 				
 				var envs = {
-					"SOAJS_GIT_DASHBOARD_BRANCH": process.env.SOAJS_GIT_DASHBOARD_BRANCH || "develop",
-					"SOAJS_GIT_BRANCH": process.env.SOAJS_GIT_BRANCH || "develop",
+					"SOAJS_GIT_DASHBOARD_BRANCH": process.env.SOAJS_GIT_DASHBOARD_BRANCH || "master",
+					"SOAJS_GIT_BRANCH": process.env.SOAJS_GIT_BRANCH || "master",
 					"SOAJS_PROFILE": path.normalize(dataDir + "startup/profile.js"),
 					"NODE_PATH": nodePath,
 					
@@ -526,6 +509,7 @@ module.exports = {
 					"SOAJS_GIT_OWNER": body.deployment.gitOwner,
 					"SOAJS_GIT_REPO": body.deployment.gitRepo,
 					"SOAJS_GIT_TOKEN": body.deployment.gitToken,
+					"SOAJS_GIT_CUSTOM_UI_BRANCH" : body.deployment.gitBranch,
 					
 					"SOAJS_DATA_FOLDER": path.normalize(dataDir + "startup/"),
 					"SOAJS_IMAGE_PREFIX": body.deployment.imagePrefix,
@@ -543,47 +527,50 @@ module.exports = {
 					"SOAJS_DOCKER_REPLICA": body.deployment.dockerReplica
 				};
 				
+				if(body.deployment.gitSource && body.deployment.gitSource !== 'github'){
+					envs["SOAJS_GIT_SOURCE"] = body.deployment.gitSource;
+					envs["SOAJS_GIT_PROVIDER"] = body.deployment.gitProvider;
+				}
+				
 				if (body.clusters.replicaSet) {
 					envs['SOAJS_MONGO_RSNAME'] = body.clusters.replicaSet;
 				}
-				envs['SOAJS_DEPLOY_ANALYTICS'] = body.deployment.deployAnalytics ? true : false;
 				
-				if (body.es_clusters && Object.keys(body.es_clusters).length > 0) {
-					envs['SOAJS_ELASTIC_EXTERNAL'] = body.clusters.es_Ext || false;
-					envs['SOAJS_ELASTIC_EXTERNAL_SERVERS'] = JSON.stringify(body.es_clusters.servers);
-					envs['SOAJS_ELASTIC_EXTERNAL_URLPARAM'] = JSON.stringify(body.es_clusters.URLParam);
-					envs['SOAJS_ELASTIC_EXTERNAL_EXTRAPARAM'] = JSON.stringify(body.es_clusters.extraParam);
-				}
-				else {
-					envs['SOAJS_ELASTIC_EXTERNAL'] = false
-				}
 				if (body.deployment.docker.containerDir || body.deployment.docker.certificatesFolder) {
 					envs["SOAJS_DOCKER_CERTS_PATH"] = body.deployment.docker.containerDir || body.deployment.docker.certificatesFolder;
 				}
 				
 				for (var e in envs) {
 					if (envs[e] !== null) {
-						runner.write("export " + e + "=" + envs[e] + os.EOL);
+						output += "export " + e + "=" + envs[e] + os.EOL;
 					}
 				}
 				
 				if (!body.clusters.mongoExt) {
-					runner.write("sudo " + "killall mongo" + os.EOL);
+					output += "sudo " + "killall mongo" + os.EOL;
 				}
 				
-				runner.write(os.EOL + nodePath + " " + path.normalize(__dirname + "/../scripts/docker.js") + os.EOL);
-				runner.end();
-				
-				generateResponse("swarm");
+				output += os.EOL + nodePath + " " + path.normalize(__dirname + "/../scripts/docker.js") + os.EOL;
+				fs.writeFile(filename, output, function(err){
+					if(err){
+						return cb(err);
+					}
+					fs.chmod(path.normalize(__dirname + "/../scripts/swarm-deploy.sh"), "0755", function(chmodErr){
+						if(chmodErr){
+							return cb(chmodErr);
+						}
+						generateResponse("swarm");
+					});
+				});
 			}
 			else if (driver === 'kubernetes') {
 				
-				var runner = fs.createWriteStream(path.normalize(__dirname + "/../scripts/kubernetes-deploy.sh"));
-				runner.write("#!/bin/bash" + os.EOL + os.EOL);
+				var filename = path.normalize(__dirname + "/../scripts/kubernetes-deploy.sh");
+				var output = "#!/bin/bash" + os.EOL + os.EOL;
 				
 				var envs = {
-					"SOAJS_GIT_DASHBOARD_BRANCH": process.env.SOAJS_GIT_DASHBOARD_BRANCH || "develop",
-					"SOAJS_GIT_BRANCH": process.env.SOAJS_GIT_BRANCH || "develop",
+					"SOAJS_GIT_DASHBOARD_BRANCH": process.env.SOAJS_GIT_DASHBOARD_BRANCH || "master",
+					"SOAJS_GIT_BRANCH": process.env.SOAJS_GIT_BRANCH || "master",
 					"SOAJS_PROFILE": path.normalize(dataDir + "startup/profile.js"),
 					"NODE_PATH": nodePath,
 					
@@ -596,6 +583,7 @@ module.exports = {
 					"SOAJS_GIT_OWNER": body.deployment.gitOwner,
 					"SOAJS_GIT_REPO": body.deployment.gitRepo,
 					"SOAJS_GIT_TOKEN": body.deployment.gitToken,
+					"SOAJS_GIT_CUSTOM_UI_BRANCH" : body.deployment.gitBranch,
 					
 					"SOAJS_DATA_FOLDER": path.normalize(dataDir + "startup/"),
 					"SOAJS_IMAGE_PREFIX": body.deployment.imagePrefix,
@@ -609,34 +597,38 @@ module.exports = {
 					"SOAJS_DOCKER_REPLICA": body.deployment.dockerReplica
 				};
 				
+				if(body.deployment.gitSource && body.deployment.gitSource !== 'github'){
+					envs["SOAJS_GIT_SOURCE"] = body.deployment.gitSource;
+					envs["SOAJS_GIT_PROVIDER"] = body.deployment.gitProvider;
+				}
+				
 				if (body.deployment.kubernetes.containerDir || body.deployment.kubernetes.certificatesFolder) {
 					envs["SOAJS_DOCKER_CERTS_PATH"] = body.deployment.kubernetes.containerDir || body.deployment.kubernetes.certificatesFolder;
 				}
-				envs['SOAJS_DEPLOY_ANALYTICS'] = body.deployment.deployAnalytics ? true : false;
 				
-				if (body.es_clusters && Object.keys(body.es_clusters).length > 0) {
-					envs['SOAJS_ELASTIC_EXTERNAL'] = body.es_clusters.es_Ext || false;
-					envs['SOAJS_ELASTIC_EXTERNAL_SERVERS'] = JSON.stringify(body.es_clusters.servers);
-					envs['SOAJS_ELASTIC_EXTERNAL_URLPARAM'] = JSON.stringify(body.es_clusters.URLParam);
-					envs['SOAJS_ELASTIC_EXTERNAL_EXTRAPARAM'] = JSON.stringify(body.es_clusters.extraParam);
-				}
-				else {
-					envs['SOAJS_ELASTIC_EXTERNAL'] = false
-				}
 				for (var e in envs) {
 					if (envs[e] !== null) {
-						runner.write("export " + e + "=" + envs[e] + os.EOL);
+						output += "export " + e + "=" + envs[e] + os.EOL;
 					}
 				}
 				
 				if (!body.clusters.mongoExt) {
-					runner.write("sudo " + "killall mongo" + os.EOL);
+					output += "sudo " + "killall mongo" + os.EOL;
 				}
 				
-				runner.write(os.EOL + nodePath + " " + path.normalize(__dirname + "/../scripts/kubernetes.js") + os.EOL);
-				runner.end();
+				output += os.EOL + nodePath + " " + path.normalize(__dirname + "/../scripts/kubernetes.js") + os.EOL;
 				
-				generateResponse("kubernetes");
+				fs.writeFile(filename, output, function(err){
+					if(err){
+						return cb(err);
+					}
+					fs.chmod(path.normalize(__dirname + "/../scripts/kubernetes-deploy.sh"), "0755", function(chmodErr){
+						if(chmodErr){
+							return cb(chmodErr);
+						}
+						generateResponse("kubernetes");
+					});
+				});
 			}
 			else {
 				return cb(new Error("Invalid Deployment Strategy Requested: " + driver));
@@ -644,8 +636,6 @@ module.exports = {
 		});
 		
 		function generateResponse(type) {
-			fs.chmodSync(path.normalize(__dirname + "/../scripts/" + type + "-deploy.sh"), "0755");
-			
 			var obj = {
 				"hosts": {
 					"api": body.deployment.containerHost + " " + body.gi.api + "." + body.gi.domain,
@@ -666,8 +656,8 @@ module.exports = {
 		}
 	},
 	
-	"regenerateInfo": function (type, body, cb) {
-		if (type === 'manual') {
+	"regenerateInfo": function(type, body, cb){
+		if(type === 'manual'){
 			return cb(null, {
 				"hosts": {
 					"api": "127.0.0.1 " + body.gi.api + "." + body.gi.domain,
@@ -677,7 +667,7 @@ module.exports = {
 				"cmd": "sudo " + path.normalize(__dirname + "/../scripts/manual-deploy.sh")
 			});
 		}
-		else {
+		else{
 			generateResponse(type);
 		}
 		
@@ -693,7 +683,7 @@ module.exports = {
 				"cmd": "sudo " + path.normalize(__dirname + "/../scripts/" + type + "-deploy.sh")
 			};
 			
-			if (type === 'kubernetes') {
+			if(type === 'kubernetes'){
 				obj = {
 					"hosts": {
 						"api": body.deployment.containerHost + " " + body.gi.api + "." + body.gi.domain,
@@ -723,285 +713,274 @@ module.exports = {
 			 1- check if all files in wrkDir exists
 			 2- check if all dependencies in repos are installed
 			 */
-			var dest = path.normalize(body.gi.wrkDir + "/soajs/node_modules/");
-			fs.exists(dest, function (exists) {
-				if (!exists) {
-					return cb(null, false);
-				}
-				
-				fs.readdir(dest, function (err, files) {
-					if (err) {
-						return cb(err);
-					}
-					
-					if (!files || files.length === 0) {
-						return cb(null, {
-							download: {
-								count: 0,
-								total: repos.length
-							}
-						});
-					}
-					
-					async.map(files, function (oneFile, mcb) {
-						fs.exists(dest + oneFile, function (exists) {
-							if (!exists) {
-								return mcb(null, 0);
-							}
-							var done = (repos.indexOf(oneFile) !== -1);
-							if (!done) {
-								return mcb(null, null);
-							}
-							
-							fs.readdir(dest + oneFile, function (error, content) {
-								if (error) {
-									return mcb(error);
-								}
-								if (!content || content.length === 0) {
-									return mcb(null, 0);
-								}
-								
-								if (content.indexOf('node_modules') !== -1) {
-									fs.readdir(dest + oneFile + "/node_modules/", function (error, dependencies) {
-										if (error) {
-											return mcb(error);
-										}
-										if (dependencies.length > 0) {
-											return mcb(null, 1);
-										}
-										return mcb(null, 0);
-									});
-								}
-								else {
-									return mcb(null, 1);
-								}
-							});
-						});
-					}, function (error, response) {
-						if (error) {
-							return cb(error);
-						}
-						
-						var bar = 0;
-						for (var i = response.length - 1; i >= 0; i--) {
-							if (response[i] !== 0 && response[i] !== 1) {
-								response.splice(i, 1);
-							}
-							else if (response[i] === 1) {
-								bar++;
-							}
-						}
-						
-						//the only thing remaining now in the array are 1s and 0s which represent the repos installed
-						if (bar < repos.length) {
-							return cb(null, {
-								download: {
-									count: bar,
-									total: repos.length
-								}
-							});
-						}
-						
-						checkHosts(false, {
-							download: {
-								count: bar,
-								total: repos.length
-							}
-						});
-					});
-				});
-			})
-		}
-		else {
+            var dest = path.normalize(body.gi.wrkDir + "/soajs/node_modules/");
+            fs.exists(dest, function (exists) {
+                if (!exists) {
+                    return cb(null, false);
+                }
+
+                fs.readdir(dest, function (err, files) {
+                    if (err) {
+                        return cb(err);
+                    }
+
+                    if(!files || files.length === 0){
+                        return cb(null, {
+	                        deployType: 'manual',
+                            download: {
+                                count: 0,
+                                total: repos.length
+                            }
+                        });
+                    }
+
+                    async.map(files, function (oneFile, mcb) {
+                        fs.exists(dest + oneFile, function (exists) {
+                            if (!exists) {
+                                return mcb(null, 0);
+                            }
+                            var done = (repos.indexOf(oneFile) !== -1);
+                            if (!done) {
+                                return mcb(null, null);
+                            }
+
+                            fs.readdir(dest + oneFile, function (error, content) {
+                                if (error) {
+                                    return mcb(error);
+                                }
+                                if(!content || content.length === 0){
+                                    return mcb(null, 0);
+                                }
+
+                                if (content.indexOf('node_modules') !== -1) {
+                                    fs.readdir(dest + oneFile + "/node_modules/", function (error, dependencies) {
+                                        if (error) {
+                                            return mcb(error);
+                                        }
+                                        if (dependencies.length > 0) {
+                                            return mcb(null, 1);
+                                        }
+                                        return mcb(null, 0);
+                                    });
+                                }
+                                else {
+                                    return mcb(null, 1);
+                                }
+                            });
+                        });
+                    }, function (error, response) {
+                        if (error) {
+                            return cb(error);
+                        }
+
+                        var bar = 0;
+                        for (var i = response.length - 1; i >= 0; i--) {
+                            if (response[i] !== 0 && response[i] !== 1) {
+                                response.splice(i, 1);
+                            }
+                            else if (response[i] === 1) {
+                                bar++;
+                            }
+                        }
+
+                        //the only thing remaining now in the array are 1s and 0s which represent the repos installed
+                        if (bar < repos.length) {
+                            return cb(null, {
+	                            deployType: 'manual',
+                                download: {
+                                    count: bar,
+                                    total: repos.length
+                                }
+                            });
+                        }
+
+                        checkHosts(false, {
+	                        deployType: 'manual',
+                            download: {
+                                count: bar,
+                                total: repos.length
+                            }
+                        });
+                    });
+                });
+            })
+        }
+        else {
 			/*
 			 1- call api and check if all services have containers
 			 */
-			if (body.deployment.deployDriver.indexOf("docker") !== -1) {
-				// docker
-				var services = ["dashboard_soajs_prx", "dashboard_soajs_urac", "dashboard_soajs_dashboard", "dashboard_soajs_controller", "dashboard_nginx"];
-				var Docker = require('dockerode');
-				var deployerConfig = {
-					"host": body.deployment.containerHost,
-					"port": body.deployment.docker.containerPort
-				};
-				if (typeof (deployerConfig.host) === 'string' && deployerConfig.host === '127.0.0.1') {
-					deployerConfig = {
-						socketPath: body.deployment.docker.dockerSocket
-					};
-				}
-				else {
-					if (!body.deployment.docker.certsPath) {
-						return cb(new Error('No certificates found for remote machine.'));
-					}
-					deployerConfig.ca = fs.readFileSync(body.deployment.docker.certsPath + '/ca.pem');
-					deployerConfig.cert = fs.readFileSync(body.deployment.docker.certsPath + '/cert.pem');
-					deployerConfig.key = fs.readFileSync(body.deployment.docker.certsPath + '/key.pem');
-				}
-				var deployer = new Docker(deployerConfig);
-				deployer.listContainers({}, function (error, containers) {
-					if (error) return cb(error);
-					
-					deployer.listServices({}, function (error, dockerServices) {
-						if (error) return cb(error);
-						
-						async.map(dockerServices, function (oneService, mcb) {
-							if ((services.indexOf(oneService.Spec.Name) === -1)) {
-								return mcb(null, false);
-							}
-							
-							var count = 0;
-							containers.forEach(function (oneContainer) {
-								if (oneContainer.Labels['com.docker.swarm.service.name'] === oneService.Spec.Name) {
-									count++;
-								}
-							});
-							return mcb(null, (count === body.deployment.dockerReplica));
-						}, function (error, response) {
-							if (error) return cb(error);
-							
-							var bar = 0;
-							for (var i = response.length - 1; i >= 0; i--) {
-								if (response[i]) {
-									bar++;
-								}
-							}
-							
-							if (bar < services.length) {
-								return cb(null, {
-									download: {
-										count: bar,
-										total: services.length
-									}
-								});
-							}
-							checkHosts(true, {
-								download: {
-									count: bar,
-									total: services.length
-								}
-							});
-						});
-					});
-				});
-			}
-			else {
-				// kubernetes
-				var services = ["dashboard-proxy", "dashboard-urac", "dashboard-dashboard", "dashboard-controller", "dashboard-nginx"];
-				var K8Api = require('kubernetes-client');
-				
-				if (!body.deployment.kubernetes.containerDir && !body.deployment.kubernetes.certificatesFolder) {
-					return cb(new Error('No certificates found for remote machine.'));
-				}
-				body.deployment.kubernetes.certsPath = body.deployment.kubernetes.containerDir || body.deployment.kubernetes.certificatesFolder;
-				
-				var certsName = {
-					"ca": '/ca.pem',
-					"cert": '/apiserver.pem',
-					"key": '/apiserver-key.pem'
-				};
-				if (body.deployment.deployDriver === 'container.kubernetes.local' && process.platform === 'darwin') {
-					certsName = {
-						"ca": '/ca.crt',
-						"cert": '/apiserver.crt',
-						"key": '/apiserver.key'
-					};
-				}
-				
-				try {
-					var deployerConfig = {
-						"url": 'https://' + (body.deployment.containerHost || "127.0.0.1") + ':' + (parseInt(body.deployment.kubernetes.containerPort) || 8443),
-						"namespace": 'default',
-						"ca": fs.readFileSync(body.deployment.kubernetes.certsPath + certsName.ca),
-						"cert": fs.readFileSync(body.deployment.kubernetes.certsPath + certsName.cert),
-						"key": fs.readFileSync(body.deployment.kubernetes.certsPath + certsName.key),
-						"version": "v1beta1"
-					};
-					var deployer = new K8Api.Extensions(deployerConfig);
-				}
-				catch (e) {
-					return cb(null, {
-						download: {
-							count: 0,
-							total: services.length
-						}
-					});
-				}
-				
-				deployer.namespaces.deployments.get({}, function (error, deploymentList) {
-					if (error) return cb(error);
-					async.map(deploymentList.items, function (oneService, mcb) {
-						if (services.indexOf(oneService.metadata.name) !== -1) {
-							return mcb(null, (oneService.status.availableReplicas === body.deployment.dockerReplica));
-						}
-						else return mcb(null, null);
-					}, function (error, response) {
-						if (error) return cb(error);
-						
-						var bar = 0;
-						for (var i = response.length - 1; i >= 0; i--) {
-							if (response[i]) {
-								bar++;
-							}
-						}
-						
-						//the only thing remaining now in the array are 1s and 0s which represent the repos installed
-						if (bar < services.length) {
-							return cb(null, {
-								download: {
-									count: bar,
-									total: services.length
-								}
-							});
-						}
-						
-						checkHosts(true, {
-							download: {
-								count: bar,
-								total: services.length
-							}
-						});
-					});
-				});
-			}
-		}
-		
-		function checkHosts(ha, download) {
+            if (body.deployment.deployDriver.indexOf("docker") !== -1) {
+                // docker
+                var services = ["dashboard_soajs_prx", "dashboard_soajs_urac", "dashboard_soajs_dashboard", "dashboard-controller", "dashboard_nginx"];
+                var Docker = require('dockerode');
+                var deployerConfig = {
+                    "host": body.deployment.containerHost,
+                    "port": body.deployment.docker.containerPort
+                };
+                if (typeof (deployerConfig.host) === 'string' && deployerConfig.host === '127.0.0.1') {
+                    deployerConfig = {
+                        socketPath: body.deployment.docker.dockerSocket
+                    };
+                }
+                else {
+                    if (!body.deployment.docker.certsPath) {
+                        return cb(new Error('No certificates found for remote machine.'));
+                    }
+                    deployerConfig.ca = fs.readFileSync(body.deployment.docker.certsPath + '/ca.pem');
+                    deployerConfig.cert = fs.readFileSync(body.deployment.docker.certsPath + '/cert.pem');
+                    deployerConfig.key = fs.readFileSync(body.deployment.docker.certsPath + '/key.pem');
+                }
+                var deployer = new Docker(deployerConfig);
+                deployer.listContainers({}, function (error, containers) {
+                    if (error) return cb(error);
+
+                    deployer.listServices({}, function (error, dockerServices) {
+                        if (error) return cb(error);
+
+                        async.map(dockerServices, function (oneService, mcb) {
+                            if ((services.indexOf(oneService.Spec.Name) === -1)) {
+                                return mcb(null, false);
+                            }
+
+                            var count = 0;
+                            containers.forEach(function(oneContainer){
+                                if(oneContainer.Labels['com.docker.swarm.service.name'] === oneService.Spec.Name){
+                                    count++;
+                                }
+                            });
+                            return mcb(null, (count === body.deployment.dockerReplica));
+                        }, function (error, response) {
+                            if (error) return cb(error);
+
+                            var bar = 0;
+                            for (var i = response.length - 1; i >= 0; i--) {
+                                if (response[i]) {
+                                    bar++;
+                                }
+                            }
+
+                            return cb(null, {
+	                            deployType: 'docker',
+	                            download: {
+		                            count: bar,
+		                            total: services.length
+	                            }
+                            });
+                        });
+                    });
+                });
+            }
+            else {
+                // kubernetes
+                var services = ["dashboard-proxy", "dashboard-urac", "dashboard-dashboard", "dashboard-controller", "dashboard-nginx"];
+                var K8Api = require('kubernetes-client');
+
+                if (!body.deployment.kubernetes.containerDir && !body.deployment.kubernetes.certificatesFolder) {
+                    return cb(new Error('No certificates found for remote machine.'));
+                }
+                body.deployment.kubernetes.certsPath = body.deployment.kubernetes.containerDir || body.deployment.kubernetes.certificatesFolder;
+
+                var certsName = {
+                    "ca": '/ca.pem',
+                    "cert": '/apiserver.pem',
+                    "key": '/apiserver-key.pem'
+                };
+                if(body.deployment.deployDriver === 'container.kubernetes.local' && process.platform === 'darwin'){
+                    certsName = {
+                        "ca": '/ca.crt',
+                        "cert": '/apiserver.crt',
+                        "key": '/apiserver.key'
+                    };
+                }
+
+                try{
+                    var deployerConfig = {
+                        "url": 'https://' + (body.deployment.containerHost || "127.0.0.1") + ':' + (parseInt(body.deployment.kubernetes.containerPort) || 8443),
+                        "namespace": 'default',
+                        "ca": fs.readFileSync(body.deployment.kubernetes.certsPath + certsName.ca),
+                        "cert": fs.readFileSync(body.deployment.kubernetes.certsPath + certsName.cert),
+                        "key": fs.readFileSync(body.deployment.kubernetes.certsPath + certsName.key),
+                        "version": "v1beta1"
+                    };
+                    var deployer = new K8Api.Extensions(deployerConfig);
+                }
+                catch(e){
+                    return cb(null, {
+	                    deployType: 'kubernetes',
+                        download: {
+                            count: 0,
+                            total: services.length
+                        }
+                    });
+                }
+
+                deployer.namespaces.deployments.get({}, function (error, deploymentList) {
+                    if (error) return cb(error);
+                    async.map(deploymentList.items, function (oneService, mcb) {
+                        if (services.indexOf(oneService.metadata.name) !== -1) {
+                            return mcb(null, (oneService.status.availableReplicas === body.deployment.dockerReplica));
+                        }
+                        else return mcb(null, null);
+                    }, function (error, response) {
+                        if (error) return cb(error);
+
+                        var bar = 0;
+                        for (var i = response.length - 1; i >= 0; i--) {
+                            if (response[i]) {
+                                bar++;
+                            }
+                        }
+
+                        //the only thing remaining now in the array are 1s and 0s which represent the repos installed
+                        return cb(null, {
+                            deployType: 'kubernetes',
+                            download: {
+                                count: bar,
+                                total: services.length
+                            }
+                        });
+                    });
+                });
+            }
+        }
+
+        function checkHosts(ha, download) {
 			/*
 			 1- load profile
 			 2- create new mongo connector
 			 3- query hosts collection
 			 */
-			var profile = require(path.normalize(dataDir + "startup/profile.js"));
-			var myMongo = new soajs.mongo(profile);
-			
-			myMongo.find("hosts", {"env": "dashboard"}, function (error, hosts) {
-				if (error) {
-					return cb(error);
-				}
-				
-				var data = {
-					download: download.download
-				};
-				
-				var list = ["controller", "urac", "dashboard", "proxy"];
-				if (ha) {
-					var replica = body.deployment.dockerReplica;
-					data.install = {
-						count: hosts.length,
-						total: list.length * replica
-					};
-				}
-				else {
-					list.pop();
-					data.install = {
-						count: hosts.length,
-						total: list.length
-					};
-				}
-				
-				myMongo.closeDb();
-				return cb(null, data);
-			});
-		}
-	}
+            var profile = require(path.normalize(dataDir + "startup/profile.js"));
+            var myMongo = new soajs.mongo(profile);
+
+            myMongo.find("hosts", {"env": "dashboard"}, function (error, hosts) {
+                if (error) {
+                    return cb(error);
+                }
+
+                var data = {
+                    download: download.download
+                };
+
+                var list = ["controller", "urac", "dashboard", "proxy"];
+                if (ha) {
+                    var replica = body.deployment.dockerReplica;
+                    data.install = {
+                        count: hosts.length,
+                        total: list.length * replica
+                    };
+                }
+                else {
+                    list.pop();
+                    data.install = {
+                        count: hosts.length,
+                        total: list.length
+                    };
+                }
+
+                myMongo.closeDb();
+                return cb(null, data);
+            });
+        }
+    }
 };

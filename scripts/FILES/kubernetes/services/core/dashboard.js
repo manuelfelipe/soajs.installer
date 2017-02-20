@@ -12,10 +12,10 @@ var components = {
                 "soajs.env.code": "dashboard",
 
                 "soajs.service.name": "dashboard",
-                "soajs.service.group": "core",
+                "soajs.service.group": "soajs-core-services",
+                "soajs.service.type": "service",
                 "soajs.service.version": "1",
-                "soajs.service.label": "dashboard-dashboard",
-	            "soajs.service.repo.name": "soajs_dashboard"
+                "soajs.service.label": "dashboard-dashboard"
             }
         },
         "spec": {
@@ -24,9 +24,16 @@ var components = {
             },
             "ports": [
                 {
+                    "name": "service-port",
                     "protocol": "TCP",
                     "port": 4003,
                     "targetPort": 4003
+                },
+                {
+                    "name": "maintenance-port",
+                    "protocol": "TCP",
+                    "port": 5003,
+                    "targetPort": 5003
                 }
             ]
         }
@@ -41,10 +48,10 @@ var components = {
                 "soajs.env.code": "dashboard",
 
                 "soajs.service.name": "dashboard",
-                "soajs.service.group": "core",
+                "soajs.service.group": "soajs-core-services",
+                "soajs.service.type": "service",
                 "soajs.service.version": "1",
-                "soajs.service.label": "dashboard-dashboard",
-	            "soajs.service.repo.name": "soajs_dashboard"
+                "soajs.service.label": "dashboard-dashboard"
             }
         },
         "spec": {
@@ -62,7 +69,8 @@ var components = {
                         "soajs.env.code": "dashboard",
 
                         "soajs.service.name": "dashboard",
-                        "soajs.service.group": "core",
+                        "soajs.service.group": "soajs-core-services",
+                        "soajs.service.type": "service",
                         "soajs.service.version": "1",
                         "soajs.service.label": "dashboard-dashboard"
                     }
@@ -72,7 +80,7 @@ var components = {
                         {
                             "name": "dashboard-dashboard",
 	                        "image": gConfig.imagePrefix + "/soajs",
-                            "imagePullPolicy": "IfNotPresent",
+                            "imagePullPolicy": gConfig.imagePullPolicy,
                             "workingDir": "/opt/soajs/FILES/deployer/",
                             "command": ["./soajsDeployer.sh"],
                             "args": ["-T", "service", "-X", "deploy", "-L"],

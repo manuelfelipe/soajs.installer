@@ -1,4 +1,5 @@
 "use strict";
+
 var deploymentApp = app.components;
 deploymentApp.controller('deploymentCtrl', ['$scope', 'ngDataApi', '$modal', '$timeout', function ($scope, ngDataApi, $modal, $timeout) {
 	$scope.alerts = [];
@@ -40,6 +41,7 @@ deploymentApp.controller('deploymentCtrl', ['$scope', 'ngDataApi', '$modal', '$t
 	};
 
 	$scope.goToFinal = function(){
+
 		var options = {
 			url: appConfig.url + "/installer/deployment",
 			method: "post",
@@ -105,13 +107,14 @@ deploymentApp.controller('deploymentCtrl', ['$scope', 'ngDataApi', '$modal', '$t
 			}, 10);
 		});
 	};
-	
+
 	$scope.installSOAJS = function(){
+
 		var options = {
 			url: appConfig.url + "/installer/go",
 			method: "get"
 		};
-		
+
 		ngDataApi.get($scope, options, function (error) {
 			if (error) {
 				$scope.alerts.push({'type': 'danger', 'msg': error.message});
@@ -138,11 +141,14 @@ deploymentApp.controller('deploymentCtrl', ['$scope', 'ngDataApi', '$modal', '$t
 				"deployAnalytics": (response && response.deployAnalytics) ? response.deployAnalytics : false,
 				"deployDockerNodes": (response && response.deployDockerNodes) ? response.deployDockerNodes : [],
 				"containerHost": (response && response.containerHost) ? response.containerHost : "127.0.0.1",
+				"gitSource": (response && response.gitSource) ? response.gitSource : null,
+				"gitProvider": (response && response.gitProvider) ? response.gitProvider : null,
 				"gitOwner": (response && response.gitOwner) ? response.gitOwner : null,
                 "gitRepo": (response && response.gitRepo) ? response.gitRepo : null,
+                "gitBranch": (response && response.gitBranch) ? response.gitBranch : "master",
                 "gitToken": (response && response.gitToken) ? response.gitToken : null,
 				"imagePrefix": (response && response.imagePrefix) ? response.imagePrefix : "soajsorg",
-                
+				"certsRequired": false,
 				"nginxPort": (response && response.nginxPort) ? response.nginxPort : 80,
                 "nginxSecurePort": (response && response.nginxSecurePort) ? response.nginxSecurePort : 443,
                 "nginxSsl": (response && response.nginxSsl) ? response.nginxSsl : false,
@@ -153,14 +159,25 @@ deploymentApp.controller('deploymentCtrl', ['$scope', 'ngDataApi', '$modal', '$t
 			if($scope.deployment.deployDriver.indexOf("docker") !== -1){
 				$scope.deployment.containerDir = (response && response.docker && response.docker.containerDir) ? response.docker.containerDir : "";
 				$scope.deployment.containerPort = (response && response.docker && response.docker.containerPort) ? response.docker.containerPort : 2376;
-				$scope.deployment.dockerSocket = (response && response.docker && response.docker.dockerSocket) ? response.docker.dockerSocket : "/var/run/docker.sock";
 				$scope.deployment.networkName = (response && response.docker && response.docker.networkName) ? response.docker.networkName : "soajsnet";
 				$scope.deployment.dockerInternalPort = (response && response.docker && response.docker.dockerInternalPort) ? response.docker.dockerInternalPort : 2377;
+				//if remote docker save certs files
+                if($scope.deployment.deployDriver.indexOf("remote") !== -1){
+                	$scope.deployment.certsRequired = true;
+                	$scope.deployment.certificates = {};
+                }
+                else if($scope.deployment.deployDriver.indexOf("local") !== -1){
+                    $scope.deployment.certsRequired = false;
+                    $scope.deployment.dockerSocket = (response && response.docker && response.docker.dockerSocket) ? response.docker.dockerSocket : "/var/run/docker.sock";
+				}
 			}
 			else if ($scope.deployment.deployDriver.indexOf("kubernetes") !== -1){
+                $scope.deployment.certsRequired = true;
 				$scope.deployment.containerDir = (response && response.kubernetes && response.kubernetes.containerDir) ? response.kubernetes.containerDir : "";
 				$scope.deployment.kubeContainerPort = (response && response.kubernetes && response.kubernetes.containerPort) ? response.kubernetes.containerPort : 8443;
+                $scope.deployment.certificates = {};
 			}
+
 			$scope.evaluateDeploymentChoice();
 			resizeContent();
 		});

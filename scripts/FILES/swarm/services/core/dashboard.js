@@ -4,7 +4,7 @@ var gConfig = require("../../config.js");
 var src = {
 	owner: 'soajs',
 	repo: 'soajs.dashboard',
-	branch: gConfig.git.branch //
+	branch: gConfig.git.branch
 };
 
 var config = {
@@ -15,16 +15,17 @@ var config = {
 			Target: gConfig.docker.network
 		}
 	],
-	
+
 	image: {
 		prefix: gConfig.imagePrefix,
-		name: 'soajs:latest' //depends on name
+		name: 'soajs'
 	},
 	env: [
 		'NODE_ENV=production',
 		'SOAJS_ENV=dashboard',
 
 		'SOAJS_DEPLOY_HA=swarm',
+		'SOAJS_HA_NAME={{.Task.Name}}',
 
 		'SOAJS_PROFILE=/opt/soajs/FILES/profiles/profile.js',
 		'SOAJS_SRV_AUTOREGISTERHOST=true',
@@ -32,16 +33,10 @@ var config = {
 		'SOAJS_GIT_OWNER=' + src.owner,
 		'SOAJS_GIT_REPO=' + src.repo,
 		'SOAJS_GIT_BRANCH=' + src.branch,
-		
+
 		'NODE_TLS_REJECT_UNAUTHORIZED=0' //TODO: check whether this should be kept for testing purposes
 	],
 	mounts: [
-		{
-			"Type": "bind",
-			"ReadOnly": true,
-			"Source": gConfig.docker.socketPath,
-			"Target": gConfig.docker.socketPath
-		},
 		{
             "Type": "volume",
             "Source": gConfig.docker.volumes.log.label,
@@ -51,22 +46,18 @@ var config = {
 	labels: {
 		"soajs.content": "true",
 		"soajs.env.code": "dashboard",
-
+		"soajs.service.type": "service",
 		"soajs.service.name": "dashboard",
-		"soajs.service.group": "core",
+		"soajs.service.group": "soajs-core-services",
 		"soajs.service.version": "1",
-		"soajs.service.label": "dashboard_soajs_dashboard",
-		"soajs.service.repo.name": "soajs_dashboard"
+		"soajs.service.label": "dashboard_soajs_dashboard"
 	},
 	workingDir: '/opt/soajs/FILES/deployer/',
 	command: [
 		'bash',
 		'-c',
 		'./soajsDeployer.sh -T service -X deploy -L'
-	],
-	placement: [
-        'node.role == manager'
-    ]
+	]
 };
 
 module.exports = {
@@ -79,9 +70,6 @@ module.exports = {
 			"Command": [config.command[0]],
 			"Args": config.command.splice(1),
 			"Mounts": config.mounts
-		},
-		"Placement": {
-			"Constraints": config.placement
 		},
 		"Resources": {
 			"Limits": {

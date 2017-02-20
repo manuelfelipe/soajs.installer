@@ -18,13 +18,14 @@ var config = {
 
     image: {
         prefix: gConfig.imagePrefix,
-        name: 'soajs:latest' //depends on name
+        name: 'soajs'
     },
     env: [
         'NODE_ENV=production',
         'SOAJS_ENV=dashboard',
 
         'SOAJS_DEPLOY_HA=swarm',
+        'SOAJS_HA_NAME={{.Task.Name}}',
 
         'SOAJS_PROFILE=/opt/soajs/FILES/profiles/profile.js',
         'SOAJS_SRV_AUTOREGISTERHOST=true',
@@ -34,27 +35,20 @@ var config = {
         'SOAJS_GIT_BRANCH=' + src.branch
     ],
     mounts: [
-        {
-            "Type": "bind",
-            "ReadOnly": true,
-            "Source": gConfig.docker.socketPath,
-            "Target": gConfig.docker.socketPath
-        },
 		{
             "Type": "volume",
             "Source": gConfig.docker.volumes.log.label,
-            "Target": gConfig.docker.volumes.log.path
+            "Target": gConfig.docker.volumes.log.path,
         }
     ],
     labels: {
         "soajs.content": "true",
 		"soajs.env.code": "dashboard",
-
+	    "soajs.service.type": "service",
 		"soajs.service.name": "urac",
-		"soajs.service.group": "core",
+		"soajs.service.group": "soajs-core-services",
 		"soajs.service.version": "2",
-		"soajs.service.label": "dashboard_soajs_urac",
-	    "soajs.service.repo.name": "soajs_urac"
+		"soajs.service.label": "dashboard_soajs_urac"
     },
     workingDir: '/opt/soajs/FILES/deployer/',
     command: [

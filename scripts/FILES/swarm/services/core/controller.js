@@ -8,23 +8,24 @@ var src = {
 };
 
 var config = {
-	servName: 'dashboard_soajs_controller',
+	servName: 'dashboard-controller',
 	servReplica: parseInt(gConfig.docker.replicas),
 	servNetwork: [
 		{
 			Target: gConfig.docker.network
 		}
 	],
-	
+
 	image: {
 		prefix: gConfig.imagePrefix,
-		name: 'soajs:latest' //depends on name
+		name: 'soajs'
 	},
 	env: [
 		'NODE_ENV=production',
 		'SOAJS_ENV=dashboard',
 
 		'SOAJS_DEPLOY_HA=swarm',
+		'SOAJS_HA_NAME={{.Task.Name}}',
 
 		'SOAJS_PROFILE=/opt/soajs/FILES/profiles/profile.js',
 		'SOAJS_SRV_AUTOREGISTERHOST=true',
@@ -49,20 +50,23 @@ var config = {
 	labels: {
 		"soajs.content": "true",
 		"soajs.env.code": "dashboard",
-
+		"soajs.service.type": "service",
 		"soajs.service.name": "controller",
-		"soajs.service.group": "core",
+		"soajs.service.group": "soajs-core-services",
 		"soajs.service.version": "1",
-		"soajs.service.label": "dashboard_soajs_controller",
-		"soajs.service.repo.name": "soajs_controller"
+		"soajs.service.label": "dashboard_soajs_controller"
 	},
 	workingDir: '/opt/soajs/FILES/deployer/',
 	command: [
 		'bash',
 		'-c',
 		'./soajsDeployer.sh -T service -X deploy -L'
-	]
+	],
+	placement: [
+        'node.role == manager'
+    ]
 };
+
 
 module.exports = {
 	"Name": config.servName,
@@ -75,7 +79,9 @@ module.exports = {
 			"Args": config.command.splice(1),
 			"Mounts": config.mounts
 		},
-		"Placement": {},
+		"Placement": {
+			"Constraints": config.placement
+		},
 		"Resources": {
 			"Limits": {
 				"MemoryBytes": 209715200.0

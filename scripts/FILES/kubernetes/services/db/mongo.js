@@ -13,6 +13,7 @@ var components = {
 
                 "soajs.service.name": "soajsdata",
                 "soajs.service.group": "db",
+                "soajs.service.type": "database",
                 "soajs.service.label": "dashboard-soajsdata"
             }
         },
@@ -37,10 +38,12 @@ var components = {
         "metadata": {
             "name": "dashboard-soajsdata",
             "labels": {
+                "soajs.content": "true",
                 "soajs.env.code": "dashboard",
 
                 "soajs.service.name": "soajsdata",
                 "soajs.service.group": "db",
+                "soajs.service.type": "database",
                 "soajs.service.label": "dashboard-soajsdata"
             }
         },
@@ -55,10 +58,12 @@ var components = {
                 "metadata": {
                     "name": "dashboard-soajsdata",
                     "labels": {
+                        "soajs.content": "true",
                         "soajs.env.code": "dashboard",
 
                         "soajs.service.name": "soajsdata",
                         "soajs.service.group": "db",
+                        "soajs.service.type": "database",
                         "soajs.service.label": "dashboard-soajsdata"
                     }
                 },
@@ -67,7 +72,7 @@ var components = {
                         {
                             "name": "dashboard-soajsdata",
                             "image": "mongo",
-                            "imagePullPolicy": "IfNotPresent",
+                            "imagePullPolicy": gConfig.imagePullPolicy,
                             "command": ["mongod", "--smallfiles"],
                             "ports": [
                                 {

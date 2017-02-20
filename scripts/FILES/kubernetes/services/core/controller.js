@@ -6,16 +6,16 @@ var components = {
         "apiVersion": "v1",
         "kind": "Service",
         "metadata": {
-            "name": "dashboard-controller-service",
+            "name": "dashboard-controller",
             "labels": {
                 "soajs.content": "true",
                 "soajs.env.code": "dashboard",
 
                 "soajs.service.name": "controller",
-                "soajs.service.group": "core",
+                "soajs.service.group": "soajs-core-services",
+                "soajs.service.type": "service",
                 "soajs.service.version": "1",
-                "soajs.service.label": "dashboard-controller",
-	            "soajs.service.repo.name": "soajs_controller"
+                "soajs.service.label": "dashboard-controller"
             }
         },
         "spec": {
@@ -24,9 +24,16 @@ var components = {
             },
             "ports": [
                 {
+                    "name": "service-port",
                     "protocol": "TCP",
                     "port": 4000,
                     "targetPort": 4000
+                },
+                {
+                    "name": "maintenance-port",
+                    "protocol": "TCP",
+                    "port": 5000,
+                    "targetPort": 5000
                 }
             ]
         }
@@ -38,13 +45,14 @@ var components = {
             "soajs.content": "true",
             "name": "dashboard-controller",
             "labels": {
+                "soajs.content": "true",
                 "soajs.env.code": "dashboard",
 
                 "soajs.service.name": "controller",
-                "soajs.service.group": "core",
+                "soajs.service.group": "soajs-core-services",
+                "soajs.service.type": "service",
                 "soajs.service.version": "1",
-                "soajs.service.label": "dashboard-controller",
-	            "soajs.service.repo.name": "soajs_controller"
+                "soajs.service.label": "dashboard-controller"
             }
         },
         "spec": {
@@ -62,7 +70,8 @@ var components = {
                         "soajs.env.code": "dashboard",
 
                         "soajs.service.name": "controller",
-                        "soajs.service.group": "core",
+                        "soajs.service.group": "soajs-core-services",
+                        "soajs.service.type": "service",
                         "soajs.service.version": "1",
                         "soajs.service.label": "dashboard-controller"
                     }
@@ -72,7 +81,7 @@ var components = {
                         {
                             "name": "dashboard-controller",
                             "image": gConfig.imagePrefix + "/soajs",
-                            "imagePullPolicy": "IfNotPresent",
+                            "imagePullPolicy": gConfig.imagePullPolicy,
                             "workingDir": "/opt/soajs/FILES/deployer/",
                             "command": ["./soajsDeployer.sh"],
                             "args": ["-T", "service", "-X", "deploy", "-L"],
@@ -138,6 +147,19 @@ var components = {
                                     "name": gConfig.kubernetes.volumes.log.label
                                 }
                             ]
+                        },
+                        {
+                            "name": "kubectl-proxy",
+                            "image": "lachlanevenson/k8s-kubectl",
+                            "imagePullPolicy": gConfig.imagePullPolicy,
+                            "args": ["proxy", "-p", "8001"],
+                            "ports": [
+                                {
+
+                                    "containerPort": 8001
+                                }
+                            ],
+                            "env": []
                         }
                     ],
                     "volumes": [

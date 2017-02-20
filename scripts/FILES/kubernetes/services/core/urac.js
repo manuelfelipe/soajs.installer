@@ -12,10 +12,10 @@ var components = {
                 "soajs.env.code": "dashboard",
 
                 "soajs.service.name": "urac",
-                "soajs.service.group": "core",
+                "soajs.service.group": "soajs-core-services",
+                "soajs.service.type": "service",
                 "soajs.service.version": "2",
-                "soajs.service.label": "dashboard-urac",
-	            "soajs.service.repo.name": "soajs_urac"
+                "soajs.service.label": "dashboard-urac"
             }
         },
         "spec": {
@@ -24,9 +24,16 @@ var components = {
             },
             "ports": [
                 {
+                    "name": "service-port",
                     "protocol": "TCP",
                     "port": 4001,
                     "targetPort": 4001
+                },
+                {
+                    "name": "maintenance-port",
+                    "protocol": "TCP",
+                    "port": 5001,
+                    "targetPort": 5001
                 }
             ]
         }
@@ -41,10 +48,10 @@ var components = {
                 "soajs.env.code": "dashboard",
 
                 "soajs.service.name": "urac",
-                "soajs.service.group": "core",
+                "soajs.service.group": "soajs-core-services",
+                "soajs.service.type": "service",
                 "soajs.service.version": "2",
-                "soajs.service.label": "dashboard-urac",
-	            "soajs.service.repo.name": "soajs_urac"
+                "soajs.service.label": "dashboard-urac"
             }
         },
         "spec": {
@@ -62,7 +69,8 @@ var components = {
                         "soajs.env.code": "dashboard",
 
                         "soajs.service.name": "urac",
-                        "soajs.service.group": "core",
+                        "soajs.service.group": "soajs-core-services",
+                        "soajs.service.type": "service",
                         "soajs.service.version": "2",
                         "soajs.service.label": "dashboard-urac"
                     }
@@ -72,7 +80,7 @@ var components = {
                         {
                             "name": "dashboard-urac",
                             "image": gConfig.imagePrefix + "/soajs",
-                            "imagePullPolicy": "IfNotPresent",
+                            "imagePullPolicy": gConfig.imagePullPolicy,
                             "workingDir": "/opt/soajs/FILES/deployer/",
                             "command": ["./soajsDeployer.sh"],
                             "args": ["-T", "service", "-X", "deploy", "-L"],

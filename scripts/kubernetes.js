@@ -34,7 +34,10 @@ lib.getDeployer(config.kubernetes.config, function (error, deployer) {
 		            if (err){
 			            throw new Error (error)
 		            }
-		            lib.closeDbCon(function(){});
+		            lib.closeDbCon(function(){
+			            utilLog.log('SOAJS Has been deployed.');
+			            process.exit();
+		            });
 	            });
             });
         }, 5000);
@@ -80,7 +83,9 @@ function importProvisionData (dbServices, deployer, cb) {
     lib.getServiceIPs(config.mongo.services.dashboard.name, deployer, 1, function (error, response) {
         if (error) return cb(error);
 		setTimeout(function () {
-			lib.importData(config.mongo.services, cb);
+			lib.importData(config.mongo.services, function(){
+				lib.importCertificates(cb);
+			});
 		}, 10000);
 	});
 }

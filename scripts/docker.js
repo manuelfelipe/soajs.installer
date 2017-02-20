@@ -31,13 +31,13 @@ lib.getDeployer(config.docker, function (error, deployer) {
 					if (error) throw new Error(error);
 					
 					utilLog.log ('Deploying SOAJS ...');
-					return deploySOAJS(deployer);
+					deploySOAJS(deployer);
 				});
 			});
 		}
 		else {
 			utilLog.log ('No swarm exists on this machine, initializing new swarm ...');
-			return initSwarm(deployer);
+			initSwarm(deployer);
 		}
 	});
 });
@@ -79,7 +79,10 @@ function deploySOAJS(deployer) {
 				if (err){
 					throw new Error (error)
 				}
-				lib.closeDbCon(function(){});
+				lib.closeDbCon(function(){
+					utilLog.log('SOAJS Has been deployed.');
+					process.exit();
+				});
 			});
 			
 		});
@@ -126,7 +129,9 @@ function importProvisionData (dbServices, deployer, cb) {
 		if (error) return cb(error);
 		
 		setTimeout(function () {
-			lib.importData(config.mongo.services, cb);
+            lib.importData(config.mongo.services, function(){
+                lib.importCertificates(cb);
+            });
 		}, 5000);
 	});
 }

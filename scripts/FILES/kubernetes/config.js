@@ -18,7 +18,7 @@ var lib  = {
 	"customUISrc":{
 		"owner": process.env.SOAJS_GIT_OWNER || null,
 		"repo": process.env.SOAJS_GIT_REPO || null,
-		"branch": process.env.SOAJS_GIT_BRANCH || null,
+		"branch": process.env.SOAJS_GIT_CUSTOM_UI_BRANCH || null,
 		"token": process.env.SOAJS_GIT_TOKEN || null
 	},
 	"mongo":{
@@ -41,6 +41,7 @@ var lib  = {
 		"ssl": (process.env.SOAJS_NX_SSL === "true") || false
 	},
 	"imagePrefix": process.env.SOAJS_IMAGE_PREFIX || 'soajsorg',
+	"imagePullPolicy": process.env.SOAJS_IMAGE_PULL_POLICY || 'Always',
 	"kubernetes": {
 		"config":{
 			"url": 'https://' + (process.env.CONTAINER_HOST || "127.0.0.1") + ':' + (parseInt(process.env.CONTAINER_PORT) || 8443),
@@ -63,7 +64,7 @@ var lib  = {
 		}
 	},
 	
-	"deployGroups": ['db', 'elk', 'core', 'nginx' ],
+	"deployGroups": ['db', 'elk', 'core', 'nginx'],
 	"services":{
 		"path": {
 			"dir": __dirname + '/services/',
