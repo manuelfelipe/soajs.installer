@@ -355,7 +355,6 @@ module.exports = {
 		fs.unlinkSync(folder + "tenants/info.js");
 	},
 	
-	
 	"unifyData": function (def, over) {
 		if (over.gi) {
 			for (var i in def.gi) {
@@ -388,6 +387,15 @@ module.exports = {
 		if (over.clusters) {
 			for (var j in over.clusters) {
 				def.clusters[j] = over.clusters[j];
+			}
+		}
+		
+		if (over.es_clusters) {
+			for (var j in over.es_clusters) {
+				if (!def.es_clusters) {
+					def.es_clusters = {};
+				}
+				def.es_clusters[j] = over.es_clusters[j];
 			}
 		}
 		return def;
@@ -484,6 +492,27 @@ module.exports = {
 		return cb(null, true);
 	},
 	
+	"verifyEsIP": function (req, res, cb) {
+		var tempData = req.soajs.inputmaskData.es_clusters;
+		if (tempData.analytics) {
+			if (tempData.es_Ext) {
+				for (var i = 0; i < tempData.servers.length; i++) {
+					if (!tempData.servers[i].host)
+						return cb("noIP");
+					if (tempData.servers[i].host === "127.0.0.1")
+						return cb(tempData.servers[i].host)
+				}
+			}
+			else {
+				req.soajs.inputmaskData.es_clusters.servers = [{"host": "127.0.0.1", "port": 9200}];
+			}
+		}
+		else {
+			req.soajs.inputmaskData.es_clusters =null;
+		}
+		return cb(null, true);
+	},
+	
 	"deployContainer": function (body, driver, loc, cb) {
 		whereis('node', function (err, nodePath) {
 			if (err) {
@@ -535,7 +564,17 @@ module.exports = {
 				if (body.clusters.replicaSet) {
 					envs['SOAJS_MONGO_RSNAME'] = body.clusters.replicaSet;
 				}
+				envs['SOAJS_DEPLOY_ANALYTICS'] = body.deployment.deployAnalytics ? true : false;
 				
+				if (body.es_clusters && Object.keys(body.es_clusters).length > 0) {
+					envs['SOAJS_ELASTIC_EXTERNAL'] = body.clusters.es_Ext || false;
+					envs['SOAJS_ELASTIC_EXTERNAL_SERVERS'] = JSON.stringify(body.es_clusters.servers);
+					envs['SOAJS_ELASTIC_EXTERNAL_URLPARAM'] = JSON.stringify(body.es_clusters.URLParam);
+					envs['SOAJS_ELASTIC_EXTERNAL_EXTRAPARAM'] = JSON.stringify(body.es_clusters.extraParam);
+				}
+				else {
+					envs['SOAJS_ELASTIC_EXTERNAL'] = false
+				}
 				if (body.deployment.docker.containerDir || body.deployment.docker.certificatesFolder) {
 					envs["SOAJS_DOCKER_CERTS_PATH"] = body.deployment.docker.containerDir || body.deployment.docker.certificatesFolder;
 				}
@@ -605,7 +644,17 @@ module.exports = {
 				if (body.deployment.kubernetes.containerDir || body.deployment.kubernetes.certificatesFolder) {
 					envs["SOAJS_DOCKER_CERTS_PATH"] = body.deployment.kubernetes.containerDir || body.deployment.kubernetes.certificatesFolder;
 				}
+				envs['SOAJS_DEPLOY_ANALYTICS'] = body.deployment.deployAnalytics ? true : false;
 				
+				if (body.es_clusters && Object.keys(body.es_clusters).length > 0) {
+					envs['SOAJS_ELASTIC_EXTERNAL'] = body.es_clusters.es_Ext || false;
+					envs['SOAJS_ELASTIC_EXTERNAL_SERVERS'] = JSON.stringify(body.es_clusters.servers);
+					envs['SOAJS_ELASTIC_EXTERNAL_URLPARAM'] = JSON.stringify(body.es_clusters.URLParam);
+					envs['SOAJS_ELASTIC_EXTERNAL_EXTRAPARAM'] = JSON.stringify(body.es_clusters.extraParam);
+				}
+				else {
+					envs['SOAJS_ELASTIC_EXTERNAL'] = false
+				}
 				for (var e in envs) {
 					if (envs[e] !== null) {
 						output += "export " + e + "=" + envs[e] + os.EOL;

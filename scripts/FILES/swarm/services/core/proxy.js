@@ -38,7 +38,7 @@ var config = {
 		{
             "Type": "volume",
             "Source": gConfig.docker.volumes.log.label,
-            "Target": gConfig.docker.volumes.log.path,
+            "Target": gConfig.docker.volumes.log.path
         }
 	],
 	labels: {
@@ -48,7 +48,8 @@ var config = {
 		"soajs.service.name": "proxy",
 		"soajs.service.group": "soajs-core-services",
 		"soajs.service.version": "1",
-		"soajs.service.label": "dashboard_soajs_prx"
+		"soajs.service.label": "dashboard_soajs_prx",
+		"soajs.service.repo.name": "soajs_prx"
 	},
 	workingDir: '/opt/soajs/FILES/deployer/',
 	command: [

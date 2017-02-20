@@ -17,9 +17,9 @@ var mongo = new soajs.mongo(profile);
 var analyticsCollection = 'analytics';
 var dbConfiguration = require('../../../data/startup/environments/dashboard');
 
-if (dbConfiguration.dbs.es_clusters) {
-	if(dbConfiguration.dbs.es_clusters){
-		delete dbConfiguration.dbs.es_clusters.analytics;
+if (dbConfiguration.dbs.clusters.es_clusters) {
+	if(dbConfiguration.dbs.clusters.es_clusters.analytics){
+		delete dbConfiguration.dbs.clusters.es_clusters.analytics;
 	}
 	dbConfiguration.dbs.es_clusters.servers = [{
 		"host": process.env.CONTAINER_HOST.toString(),
@@ -585,7 +585,7 @@ var lib = {
 			serviceName = serviceOptions.deployment.metadata.labels['soajs.service.repo.name'];
 			serviceEnv = serviceOptions.deployment.metadata.labels['soajs.env.code'];
 		}
-		if (serviceGroup === 'core') {
+		if (serviceGroup === 'soajs-core-services') {
 			serviceType = (serviceName === 'controller') ? 'controller' : 'service';
 		}
 		else if (serviceGroup === 'nginx') {

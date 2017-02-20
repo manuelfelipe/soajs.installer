@@ -7,7 +7,7 @@ var config = {
 
     image: {
         prefix: '',
-        name: 'kibana:4.6.2'
+        name: 'kibana:4.6.4'
     },
     env: [],
     labels: {},

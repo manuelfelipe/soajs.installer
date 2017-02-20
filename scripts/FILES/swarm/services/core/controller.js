@@ -54,7 +54,8 @@ var config = {
 		"soajs.service.name": "controller",
 		"soajs.service.group": "soajs-core-services",
 		"soajs.service.version": "1",
-		"soajs.service.label": "dashboard_soajs_controller"
+		"soajs.service.label": "dashboard_soajs_controller",
+		"soajs.service.repo.name": "soajs_controller"
 	},
 	workingDir: '/opt/soajs/FILES/deployer/',
 	command: [
@@ -66,7 +67,6 @@ var config = {
         'node.role == manager'
     ]
 };
-
 
 module.exports = {
 	"Name": config.servName,

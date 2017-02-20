@@ -33,9 +33,9 @@ var dashboard = {
     "description": "this is the Dashboard environment",
     "dbs": {
         "clusters": {
-            "dash_cluster": "%clusters%"
+            "dash_cluster": "%clusters%",
+	        "es_clusters": "%es_clusters%",
         },
-		"es_clusters": "%es_clusters%",
         "config": {
             "prefix": "%clusterPrefix%",
             "session": {

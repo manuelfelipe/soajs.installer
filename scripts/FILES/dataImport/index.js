@@ -9,11 +9,11 @@
 var soajs = require("soajs");
 var dataFolder = process.env.SOAJS_DATA_FOLDER;
 delete require.cache[process.env.SOAJS_PROFILE];
-
+var async= require("async");
 var profile = require(process.env.SOAJS_PROFILE);
 profile.name = "core_provision";
 var mongo = new soajs.mongo(profile);
-
+var fs= require("fs");
 mongo.dropDatabase(function () {
 	lib.addExtKeys(function (errKeys) {
         if(errKeys){
@@ -140,6 +140,9 @@ var lib = {
 	 Analytics
 	 */
 	"addAnalytics": function (cb) {
+		
+		/*
+		Deprecated!
 		//var control_dashboard_fb = require(dataFolder + "analytics/control_dashboard_fb.js"); //pending peter
 		var dashboard_taskName_tb = require(dataFolder + "analytics/dashboard_taskName_tb.js");
 		var dashboard_service_tb = require(dataFolder + "analytics/dashboard_service_tb.js");
@@ -158,8 +161,22 @@ var lib = {
 		
 		var records= dashboard_taskName_tb.concat(dashboard_service_tb).concat(mappings).concat(nginx_dashboard_fb).concat(visuals_nginx_fb).concat(visuals_taskName_tb).concat(visuals_service_tb).concat(searches_taskName_tb).concat(searches_service_tb);
 		records.concat(visuals_nginx_fb);
-		records.concat(settings);
-		mongo.insert("analytics", records, cb);
+		records.concat(settings);*/
+		var records = [];
+		fs.readdir(dataFolder + "analytics", function(err, items) {
+			async.forEachOf(items, function (item, key, callback) {
+				if (key === 0) {
+					records = require(dataFolder + "analytics/" + items[key]);
+				}
+				else {
+					records = records.concat(require(dataFolder + "analytics/" + item))
+				}
+				callback();
+			}, function () {
+				mongo.insert("analytics", records, cb);
+			});
+		});
+		
 		
 	},
 	/***************************************************************

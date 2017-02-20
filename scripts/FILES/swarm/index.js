@@ -16,11 +16,13 @@ var mongo = new soajs.mongo(profile);
 var analyticsCollection = 'analytics';
 var utilLog = require('util');
 var dbConfiguration = require('../../../data/startup/environments/dashboard');
-if (dbConfiguration.dbs.es_clusters) {
-	var esClient = new soajs.es(dbConfiguration.dbs.es_clusters);
+if (dbConfiguration.dbs.clusters.es_clusters) {
+	if(dbConfiguration.dbs.clusters.es_clusters.analytics){
+		delete dbConfiguration.dbs.clusters.es_clusters.analytics;
+	}
+	var esClient = new soajs.es(dbConfiguration.dbs.clusters.es_clusters);
 }
 var lib = {
-	
 	"loadCustomData": function (cb) {
 		var dataDir = process.env.SOAJS_DATA_FOLDER;
 		
@@ -316,7 +318,27 @@ var lib = {
 			}
 		});
 	},
-
+	
+	deployService: function (deployer, options, cb) {
+		if (options.Name === 'elasticsearch' && config.elasticsearch && config.elasticsearch.external) {
+			utilLog.log('External Elasticsearch deployment detected, Elasticsearch containers will not be deployed ...');
+			lib.configureElastic(deployer, options, cb);
+		}
+		deployer.createService(options, function (error, result) {
+			if (config.analytics) {
+				if (options.Name === 'elasticsearch') {
+					lib.configureElastic(deployer, options, cb);
+				}
+				else {
+					lib.configureKibana(deployer, options, cb);
+				}
+			}
+			else {
+				return cb(null, true);
+			}
+		});
+	},
+	
     deleteService: function (deployer, options, cb) {
         var service = deployer.getService(options.id);
         service.remove(cb);
@@ -445,11 +467,9 @@ var lib = {
         });
     },
 	
-	
 	configureElastic: function (deployer, serviceOptions, cb) {
 		lib.getServiceNames(serviceOptions.Name, deployer, serviceOptions.Mode.Replicated.Replicas, function (error, elasticIPs) {
 			if (error) return cb(error);
-			
 			pingElastic(function () {
 				utilLog.log('Configuring elasticsearch ...');
 				async.parallel({
@@ -553,7 +573,7 @@ var lib = {
 				type: 'dashboard'
 			};
 			
-			esClient.db.indices.existsType(options, function (error) {
+			esClient.db.indices.existsType(options, function (error, result) {
 				if (error || !result) {
 					esClient.db.indices.create(mapping, function (error) {
 						return cb(error, true);
@@ -603,7 +623,7 @@ var lib = {
 			serviceName = serviceOptions.Labels['soajs.service.repo.name'];
 			serviceEnv = serviceOptions.Labels['soajs.env.code'];
 		}
-		if (serviceGroup === 'core') {
+		if (serviceGroup === 'soajs-core-services') {
 			serviceType = (serviceName === 'controller') ? 'controller' : 'service';
 		}
 		else if (serviceGroup === 'nginx') {
