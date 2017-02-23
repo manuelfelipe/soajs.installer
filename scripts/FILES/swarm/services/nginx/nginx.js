@@ -2,7 +2,8 @@
 var gConfig = require("../../config.js");
 
 var dashUISrc = {
-	branch: gConfig.dashUISrc.branch
+	//branch: gConfig.dashUISrc.branch
+	branch: 'feature/analytics'
 };
 
 var customUISrc = {

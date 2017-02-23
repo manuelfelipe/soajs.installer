@@ -164,12 +164,16 @@ var lib = {
 		records.concat(settings);*/
 		var records = [];
 		fs.readdir(dataFolder + "analytics", function(err, items) {
+			
 			async.forEachOf(items, function (item, key, callback) {
 				if (key === 0) {
 					records = require(dataFolder + "analytics/" + items[key]);
 				}
 				else {
-					records = records.concat(require(dataFolder + "analytics/" + item))
+					var array = require(dataFolder + "analytics/" + item);
+					if (Array.isArray(array) && array.length > 0){
+						records = records.concat(array);
+					}
 				}
 				callback();
 			}, function () {
