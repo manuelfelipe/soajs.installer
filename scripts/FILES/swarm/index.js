@@ -670,9 +670,9 @@ var lib = {
 				task_Name.name = task_Name.name.replace(/[\/*?"<>|,.-]/g, "_");
 				
 				//filebeat-service-environment-taskname-*
-				var filebeatIndex = require("../analytics/filebeat-index");
-				var topbeatIndex = require("../analytics/topbeat-index");
-				var allIndex = require("../analytics/all-index");
+				var filebeatIndex = require("../analytics/indexes/filebeat-index");
+				var topbeatIndex = require("../analytics/indexes/topbeat-index");
+				var allIndex = require("../analytics/indexes/all-index");
 				analyticsArray = analyticsArray.concat(
 					[
 						{
