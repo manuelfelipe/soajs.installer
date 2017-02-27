@@ -4,7 +4,7 @@
 'use strict';
 var gConfig = require("../../config.js");
 var config = {
-	servName: 'soajs-filebeat',
+	servName: 'dashboard-filebeat',
 	servReplica: 1,
 	servNetwork: [{Target: gConfig.docker.network}],
 	

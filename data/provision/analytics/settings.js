@@ -8,7 +8,8 @@ var settings = [
 	        dashboard: {
 		        active: false
 	        }
-        }
+        },
+	    "mongoImported": true
     }
 ];
 

@@ -67,7 +67,7 @@ function deploySOAJS(deployer) {
 		async.eachSeries(config.deployGroups, function (oneGroup, callback) {
 			deploy(oneGroup, deployer, function (error, result) {
 				if (error) return callback(error);
-				if (!(!config.analytics && oneGroup === 'elk')){
+				if (!(config.analytics === "false" && oneGroup === 'elk')){
 					utilLog.log(oneGroup + ' services deployed successfully ...');
 				}
 				return callback(null, true);
@@ -75,15 +75,23 @@ function deploySOAJS(deployer) {
 			});
 		}, function (error, result) {
 			if (error) throw new Error (error);
-			lib.setDefaultIndex(function (err){
-				if (err){
-					throw new Error (error)
-				}
+			if (config.analytics === "true"){
+				lib.setDefaultIndex(function (err){
+					if (err){
+						throw new Error (error)
+					}
+					lib.closeDbCon(function(){
+						utilLog.log('SOAJS Has been deployed.');
+						process.exit();
+					});
+				});
+			}
+			else {
 				lib.closeDbCon(function(){
 					utilLog.log('SOAJS Has been deployed.');
 					process.exit();
 				});
-			});
+			}
 			
 		});
 	});
