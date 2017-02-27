@@ -388,11 +388,15 @@ var lib = {
     addMongoInfo: function (services, mongoInfo, cb) {
         var mongoEnv = [];
 
-	    if(config.mongo.prefix && config.mongo.prefix !== ""){
-		    mongoEnv.push({name: 'SOAJS_MONGO_PREFIX', value: config.mongo.prefix});
-	    }
-
-        if (config.mongo.external) {
+        if(config.mongo.prefix && config.mongo.prefix !== ""){
+            mongoEnv.push({name: 'SOAJS_MONGO_PREFIX', value: config.mongo.prefix});
+        }
+	
+	    if (config.mongo.external) {
+		    if(config.mongo.rsName && config.mongo.rsName !== null){
+			    mongoEnv.push({name: 'SOAJS_MONGO_RSNAME', value: config.mongo.rsName});
+		    }
+		    
             // if (!config.dataLayer.mongo.url || !config.dataLayer.mongo.port) {
             if (!profile.servers[0].host || !profile.servers[0].port) {
                 utilLog.log('ERROR: External Mongo information is missing URL or port, make sure SOAJS_MONGO_EXTERNAL_URL and SOAJS_MONGO_EXTERNAL_PORT are set ...');
@@ -400,25 +404,25 @@ var lib = {
             }
 
             mongoEnv.push({ name: 'SOAJS_MONGO_NB', value: '' + profile.servers.length });
-	        for(var i = 0; i < profile.servers.length; i++){
-		        mongoEnv.push({name: 'SOAJS_MONGO_IP_' + (i + 1), value: profile.servers[i].host});
-		        mongoEnv.push({name: 'SOAJS_MONGO_PORT_' + (i + 1), value: '' + profile.servers[i].port});
-	        }
+            for(var i = 0; i < profile.servers.length; i++){
+                mongoEnv.push({name: 'SOAJS_MONGO_IP_' + (i + 1), value: profile.servers[i].host});
+                mongoEnv.push({name: 'SOAJS_MONGO_PORT_' + (i + 1), value: '' + profile.servers[i].port});
+            }
 
             if (profile.credentials && profile.credentials.username && profile.credentials.password) {
                 mongoEnv.push({ name: 'SOAJS_MONGO_USERNAME', value: profile.credentials.username });
                 mongoEnv.push({ name: 'SOAJS_MONGO_PASSWORD', value: profile.credentials.password });
-	            mongoEnv.push({ name: 'SOAJS_MONGO_AUTH_DB', value: profile.URLParam.authSource });
+                mongoEnv.push({ name: 'SOAJS_MONGO_AUTH_DB', value: profile.URLParam.authSource });
             }
 
             if(profile.URLParam.ssl){
-	            mongoEnv.push({ name: 'SOAJS_MONGO_SSL', value: profile.URLParam.ssl });
+                mongoEnv.push({ name: 'SOAJS_MONGO_SSL', value: profile.URLParam.ssl });
             }
         }
         else {
             mongoEnv.push({ name: 'SOAJS_MONGO_NB', value: '1' });
-	        mongoEnv.push({ name: 'SOAJS_MONGO_IP_1', value: profile.servers[0].host});
-	        mongoEnv.push({ name: 'SOAJS_MONGO_PORT_1', value: '27017'});
+            mongoEnv.push({ name: 'SOAJS_MONGO_IP_1', value: profile.servers[0].host});
+            mongoEnv.push({ name: 'SOAJS_MONGO_PORT_1', value: '27017'});
         }
 
         services.forEach(function (oneService) {

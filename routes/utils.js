@@ -575,6 +575,10 @@ module.exports = {
 				else {
 					envs['SOAJS_ELASTIC_EXTERNAL'] = false
 				}
+				
+				if (body.clusters.replicaSet) {
+					envs['SOAJS_MONGO_RSNAME'] = body.clusters.replicaSet;
+				}
 				if (body.deployment.docker.containerDir || body.deployment.docker.certificatesFolder) {
 					envs["SOAJS_DOCKER_CERTS_PATH"] = body.deployment.docker.containerDir || body.deployment.docker.certificatesFolder;
 				}
