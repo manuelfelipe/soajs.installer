@@ -586,11 +586,11 @@ var lib = {
 		
 		if (serviceOptions.deployment.metadata.labels) {
 			serviceGroup = serviceOptions.deployment.metadata.labels['soajs.service.group'];
-			serviceName = serviceOptions.deployment.metadata.labels['soajs.service.name'];
+			serviceName = serviceOptions.deployment.metadata.labels['soajs.service.repo.name'];
 			serviceEnv = serviceOptions.deployment.metadata.labels['soajs.env.code'];
 		}
 		if (serviceGroup === 'soajs-core-services') {
-			serviceType = (serviceName === 'controller') ? 'controller' : 'service';
+			serviceType = (serviceName === 'soajs_controller') ? 'soajs_controller' : 'service';
 		}
 		else if (serviceGroup === 'nginx') {
 			serviceType = 'nginx';

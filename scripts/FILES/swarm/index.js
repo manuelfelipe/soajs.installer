@@ -626,11 +626,11 @@ var lib = {
 		
 		if (serviceOptions.Labels) {
 			serviceGroup = serviceOptions.Labels['soajs.service.group'];
-			serviceName = serviceOptions.Labels['soajs.service.name'];
+			serviceName = serviceOptions.Labels['soajs.service.repo.name'];
 			serviceEnv = serviceOptions.Labels['soajs.env.code'];
 		}
 		if (serviceGroup === 'soajs-core-services') {
-			serviceType = (serviceName === 'controller') ? 'controller' : 'service';
+			serviceType = (serviceName === 'soajs_controller') ? 'controller' : 'service';
 		}
 		else if (serviceGroup === 'nginx') {
 			serviceType = 'nginx';
