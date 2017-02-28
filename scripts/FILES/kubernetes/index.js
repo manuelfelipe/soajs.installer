@@ -590,7 +590,7 @@ var lib = {
 			serviceEnv = serviceOptions.deployment.metadata.labels['soajs.env.code'];
 		}
 		if (serviceGroup === 'soajs-core-services') {
-			serviceType = (serviceName === 'soajs_controller') ? 'soajs_controller' : 'service';
+			serviceType = (serviceName === 'soajs_controller') ? 'controller' : 'service';
 		}
 		else if (serviceGroup === 'nginx') {
 			serviceType = 'nginx';
