@@ -586,7 +586,7 @@ var lib = {
 		
 		if (serviceOptions.deployment.metadata.labels) {
 			serviceGroup = serviceOptions.deployment.metadata.labels['soajs.service.group'];
-			serviceName = serviceOptions.deployment.metadata.labels['soajs.service.repo.name'];
+			serviceName = serviceOptions.deployment.metadata.labels['soajs.service.name'];
 			serviceEnv = serviceOptions.deployment.metadata.labels['soajs.env.code'];
 		}
 		if (serviceGroup === 'soajs-core-services') {

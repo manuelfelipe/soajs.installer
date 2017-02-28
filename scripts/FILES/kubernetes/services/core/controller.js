@@ -15,8 +15,7 @@ var components = {
                 "soajs.service.group": "soajs-core-services",
                 "soajs.service.type": "service",
                 "soajs.service.version": "1",
-                "soajs.service.label": "dashboard-controller",
-	            "soajs.service.repo.name": "soajs_controller"
+                "soajs.service.label": "dashboard-controller"
             }
         },
         "spec": {
