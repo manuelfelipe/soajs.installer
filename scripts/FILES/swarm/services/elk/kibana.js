@@ -10,7 +10,13 @@ var config = {
         name: 'kibana:4.6.4'
     },
     env: [],
-    labels: {},
+    labels: {
+	    "soajs.content": "true",
+	    "soajs.service.name": "kibana",
+	    "soajs.service.group": "elk",
+	    "soajs.service.type": "elk",
+	    "soajs.service.label": "kibana"
+    },
     command: [
         "kibana"
     ],

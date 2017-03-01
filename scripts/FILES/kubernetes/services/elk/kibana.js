@@ -8,9 +8,9 @@ var components = {
 			"name": "kibana",
 			"labels": {
 				"soajs.content": "true",
-				"soajs.env.code": "dashboard",
 				"soajs.service.name": "kibana",
 				"soajs.service.group": "elk",
+				"soajs.service.type": "elk",
 				"soajs.service.label": "kibana"
 			}
 		},
@@ -35,9 +35,10 @@ var components = {
 		"metadata": {
 			"name": "kibana",
 			"labels": {
-				"soajs.env.code": "dashboard",
+				"soajs.content": "true",
 				"soajs.service.name": "kibana",
 				"soajs.service.group": "elk",
+				"soajs.service.type": "elk",
 				"soajs.service.label": "kibana"
 			}
 		},

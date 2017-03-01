@@ -10,9 +10,9 @@ var components = {
 			"labels": {
 				"soajs.content": "true",
 				"soajs.env.code": "dashboard",
-				"soajs.service.name": "logstash",
+				"soajs.service.name": "dashboard-logstash",
 				"soajs.service.group": "elk",
-				"soajs.service.label": "logstash"
+				"soajs.service.label": "dashboard-logstash"
 			}
 		},
 		"spec": {
@@ -33,26 +33,31 @@ var components = {
 		"metadata": {
 			"name": "logstash",
 			"labels": {
+				"soajs.content": "true",
 				"soajs.env.code": "dashboard",
-				"soajs.service.name": "logstash",
+				"soajs.service.type": "elk",
+				"soajs.service.name": "dashboard-logstash",
 				"soajs.service.group": "elk",
-				"soajs.service.label": "logstash"
+				"soajs.service.label": "dashboard-logstash"
 			}
 		},
 		"spec": {
 			"replicas": gConfig.kubernetes.replicas,
 			"selector": {
 				"matchLabels": {
-					"soajs.service.label": "logstash"
+					"soajs.service.label": "dashboard-logstash"
 				}
 			},
 			"template": {
 				"metadata": {
 					"name": "logstash",
 					"labels": {
-						"soajs.service.name": "logstash",
+						"soajs.content": "true",
+						"soajs.env.code": "dashboard",
+						"soajs.service.type": "elk",
+						"soajs.service.name": "dashboard-logstash",
 						"soajs.service.group": "elk",
-						"soajs.service.label": "logstash"
+						"soajs.service.label": "dashboard-logstash"
 					}
 				},
 				"spec": {
