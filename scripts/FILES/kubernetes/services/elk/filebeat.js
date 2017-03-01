@@ -12,27 +12,31 @@ var components = {
 		"metadata": {
 			"name": "filebeat",
 			"labels": {
+				"soajs.content": "true",
 				"soajs.env.code": "dashboard",
-				"soajs.service.name": "filebeat",
+				"soajs.service.type": "elk",
+				"soajs.service.name": "dashboard-filebeat",
 				"soajs.service.group": "elk",
-				"soajs.service.label": "filebeat"
+				"soajs.service.label": "dashboard-filebeat"
 			}
 		},
 		"spec": {
 			"replicas": 1,
 			"selector": {
 				"matchLabels": {
-					"soajs.service.label": "filebeat"
+					"soajs.service.label": "dashboard-filebeat"
 				}
 			},
 			"template": {
 				"metadata": {
 					"name": "filebeat",
 					"labels": {
+						"soajs.content": "true",
 						"soajs.env.code": "dashboard",
-						"soajs.service.name": "filebeat",
+						"soajs.service.type": "elk",
+						"soajs.service.name": "dashboard-filebeat",
 						"soajs.service.group": "elk",
-						"soajs.service.label": "filebeat"
+						"soajs.service.label": "dashboard-filebeat"
 					}
 				},
 				"spec": {

@@ -10,7 +10,14 @@ var config = {
         name: 'logstash'
     },
     env: [],
-    labels: {},
+    labels: {
+	    "soajs.content": "true",
+	    "soajs.env.code": "dashboard",
+	    "soajs.service.type": "elk",
+	    "soajs.service.name": "dashboard-logstash",
+	    "soajs.service.group": "elk",
+	    "soajs.service.label": "dashboard-logstash"
+    },
     command: [
         "bash",
         "-c",

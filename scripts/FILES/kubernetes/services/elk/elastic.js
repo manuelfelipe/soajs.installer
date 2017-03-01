@@ -9,7 +9,7 @@ var components = {
 			"name": "elasticsearch",
 			"labels": {
 				"soajs.content": "true",
-				"soajs.env.code": "dashboard",
+				"soajs.service.type": "database",
 				"soajs.service.name": "elasticsearch",
 				"soajs.service.group": "elk",
 				"soajs.service.label": "elasticsearch"
@@ -37,6 +37,7 @@ var components = {
 			"name": "elasticsearch",
 			"labels": {
 				"soajs.env.code": "dashboard",
+				"soajs.service.type": "database",
 				"soajs.service.name": "elasticsearch",
 				"soajs.service.group": "elk",
 				"soajs.service.label": "elasticsearch"
@@ -53,6 +54,8 @@ var components = {
 				"metadata": {
 					"name": "elasticsearch",
 					"labels": {
+						"soajs.env.code": "dashboard",
+						"soajs.service.type": "database",
 						"soajs.service.name": "elasticsearch",
 						"soajs.service.group": "elk",
 						"soajs.service.label": "elasticsearch"

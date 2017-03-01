@@ -10,7 +10,13 @@ var config = {
         name: 'elasticsearch:2.4.1'
     },
     env: [],
-    labels: {},
+    labels: {
+	    "soajs.env.code": "dashboard",
+	    "soajs.service.type": "database",
+	    "soajs.service.name": "elasticsearch",
+	    "soajs.service.group": "elk",
+	    "soajs.service.label": "elasticsearch"
+    },
     command: [
         "elasticsearch",
         "-Des.insecure.allow.root=true"
