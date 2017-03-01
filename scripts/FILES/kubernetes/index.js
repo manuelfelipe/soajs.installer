@@ -790,10 +790,10 @@ var lib = {
 							if (oneRecord._type === "visualization" || oneRecord._type === "search") {
 								serviceIndex = serviceName + "-";
 								if (oneRecord._injector === "service") {
-									serviceIndex = serviceIndex + "*";
+									serviceIndex = serviceIndex + serviceEnv + "-" + "*";
 								}
 								else if (oneRecord._injector === "env") {
-									serviceIndex = serviceIndex + serviceEnv + "-" + "*";
+									serviceIndex = "*-" + serviceEnv + "-" + "*";
 								}
 								else if (oneRecord._injector === "taskName") {
 									serviceIndex = serviceIndex + serviceEnv + "-" + task_Name.name + "-" + "*";
