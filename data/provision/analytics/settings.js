@@ -4,12 +4,13 @@ var settings = [
     {
         "_type": 'settings',
         "_name": 'Analytics Settings',
-        "_env": {
-	        dashboard: {
-		        active: false
-	        }
+        "env": {
+	        dashboard: false
         },
-	    "mongoImported": true
+	    "mongoImported": true,
+	    "elasticsearch": {
+        	"db_name": "%db_name%"
+        }
     }
 ];
 

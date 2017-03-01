@@ -34,7 +34,7 @@ var dashboard = {
     "dbs": {
         "clusters": {
             "dash_cluster": "%clusters%",
-	        "es_clusters": "%es_clusters%",
+	        "%es_analytics_cluster_name%": "%es_analytics_cluster%",
         },
         "config": {
             "prefix": "%clusterPrefix%",
@@ -48,7 +48,7 @@ var dashboard = {
             }
         },
         "databases": {
-	        "%es_database%": "%databases_value%",
+	        "%es_database_name%": "%databases_value%",
             "urac": {
                 "cluster": "dash_cluster",
                 "tenantSpecific": true

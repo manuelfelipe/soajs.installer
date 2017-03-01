@@ -189,7 +189,6 @@ clustersApp.controller('clustersCtrl', ['$scope', '$timeout', 'ngDataApi', funct
 				"streaming": (response && response.clusters && response.clusters.streaming) ? JSON.stringify(response.clusters.streaming, null, 2) : JSON.stringify({})
 			};
 			if ($scope.deployAnalytics) {
-				console.log($scope.deployAnalytics)
 				$scope.es_clusters = {
 					"analytics": true,
 					"es_Ext": (response && response.es_clusters && response.es_clusters.es_Ext) ? response.es_clusters.es_Ext : false,
@@ -205,7 +204,7 @@ clustersApp.controller('clustersCtrl', ['$scope', '$timeout', 'ngDataApi', funct
 						"protocol": "http"
 					}, null, 2),
 					"extraParam": (response && response.es_clusters && response.es_clusters.extraParam) ? JSON.stringify(response.es_clusters.extraParam, null, 2) : JSON.stringify({
-						"requestTimeout": 3000,
+						"requestTimeout": 30000,
 						"keepAlive": true,
 						"maxSockets": 30,
 						"number_of_shards": 5,
@@ -214,7 +213,6 @@ clustersApp.controller('clustersCtrl', ['$scope', '$timeout', 'ngDataApi', funct
 				};
 			}
 			else {
-				console.log($scope.deployAnalytics)
 				$scope.es_clusters = {
 					"analytics": false
 				};

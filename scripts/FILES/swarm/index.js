@@ -17,12 +17,13 @@ var mongo = new soajs.mongo(profile);
 var analyticsCollection = 'analytics';
 var utilLog = require('util');
 var dbConfiguration = require('../../../data/startup/environments/dashboard');
-if (dbConfiguration.dbs.clusters.es_clusters) {
-	if (dbConfiguration.dbs.clusters.es_clusters.analytics) {
-		delete dbConfiguration.dbs.clusters.es_clusters.analytics;
-	}
-	var esClient = new soajs.es(dbConfiguration.dbs.clusters.es_clusters);
-}
+var esClient;
+// if (dbConfiguration.dbs.clusters.es_clusters) {
+// 	if (dbConfiguration.dbs.clusters[es_analytics_cluster].analytics) {
+// 		delete dbConfiguration.dbs.clusters[es_analytics_cluster].analytics;
+// 	}
+// 	var esClient = new soajs.es(dbConfiguration.dbs.clusters[es_analytics_cluster]);
+// }
 var lib = {
 	"loadCustomData": function (cb) {
 		var dataDir = process.env.SOAJS_DATA_FOLDER;
@@ -474,30 +475,44 @@ var lib = {
 	},
 	
 	configureElastic: function (deployer, serviceOptions, cb) {
-		lib.getServiceNames(serviceOptions.Name, deployer, serviceOptions.Mode.Replicated.Replicas, function (error, elasticIPs) {
-			if (error) return cb(error);
-			pingElastic(function () {
-				utilLog.log('Configuring elasticsearch ...');
-				async.parallel({
-					"template": function (callback) {
-						putTemplate(callback);
-					},
-					"settings": function (callback) {
-						putSettings(callback);
-					},
-					"mapping": function (callback) {
-						putMapping(callback);
-					}
-					
-				}, function (err) {
-					if (err) return cb(err);
-					
-					return cb(null, true);
+		mongo.findOne('analytics', {_type: 'settings'}, function (error, settings) {
+			if (error){
+				return cb(error);
+			}
+			if  (settings && settings.elasticsearch && dbConfiguration.dbs.databases[settings.elasticsearch.db_name]) {
+				var cluster = dbConfiguration.dbs.databases[settings.elasticsearch.db_name].cluster;
+				esClient = new soajs.es(dbConfiguration.dbs.clusters[cluster]);
+				console.log(cluster)
+				console.log(settings.elasticsearch.db_name)
+			}
+			else {
+				throw new Error("No Elastic db name found!");
+			}
+			lib.getServiceNames(serviceOptions.Name, deployer, serviceOptions.Mode.Replicated.Replicas, function (error, elasticIPs) {
+				if (error) return cb(error);
+				pingElastic(function (err, esResponse) {
+					utilLog.log('Configuring elasticsearch ...');
+					async.parallel({
+						"template": function (callback) {
+							putTemplate(callback);
+						},
+						"settings": function (callback) {
+							putSettings(esResponse, callback);
+						},
+						"mapping": function (callback) {
+							putMapping(callback);
+						}
+						
+					}, function (err) {
+						if (err) return cb(err);
+						
+						return cb(null, true);
+					});
 				});
 			});
 		});
 		
-		function pingElastic(cb) {
+		function pingElastic(cb, ping) {
 			esClient.ping(function (error) {
 				if (error) {
 					lib.printProgress('Waiting for ' + serviceOptions.Name + ' server to become connected');
@@ -506,15 +521,15 @@ var lib = {
 					}, 2000);
 				}
 				else {
-					infoElastic(function (err) {
-						return cb(err, true);
+					infoElastic(function (err, response) {
+						return cb(err, response);
 					})
 				}
 			});
 		}
 		
 		function infoElastic(cb) {
-			esClient.db.info(function (error) {
+			esClient.db.info(function (error, response) {
 				if (error) {
 					lib.printProgress('Waiting for ' + serviceOptions.Name + ' server to become available');
 					setTimeout(function () {
@@ -522,18 +537,18 @@ var lib = {
 					}, 3000);
 				}
 				else {
-					return cb(null, true);
+					return cb(null, response);
 				}
 			});
 		}
 		
 		function putTemplate(cb) {
-			mongo.find('analytics', {_type: 'mapping'}, function (error, mappings) {
+			mongo.find('analytics', {_type: 'template'}, function (error, templates) {
 				if (error) return cb(error);
-				async.each(mappings, function (oneMapping, callback) {
+				async.each(templates, function (oneTemplate, callback) {
 					var options = {
-						'name': oneMapping._name,
-						'body': oneMapping._json
+						'name': oneTemplate._name,
+						'body': oneTemplate._json
 					};
 					esClient.db.indices.putTemplate(options, function (error) {
 						return callback(error, true);
@@ -543,57 +558,29 @@ var lib = {
 		}
 		
 		function putMapping(cb) {
-			var mapping = {
-				index: '.kibana',
-				body: {
-					"dashboard": {
-						"properties": {
-							"title": {"type": "string"},
-							"hits": {"type": "integer"},
-							"description": {"type": "string"},
-							"panelsJSON": {
-								"properties": {
-									"type": {"type": "string"},
-									"optionsJSON": {"type": "string"},
-									"uiStateJSON": {"type": "string"},
-									"version": {"type": "integer"},
-									"timeRestore": {"type": "boolean"},
-									"timeTo": {"type": "string"},
-									"timeFrom": {"type": "string"},
-									"kibanaSavedObjectMeta": {
-										"properties": {
-											"searchSourceJSON": {
-												"type": "string"
-											}
-										}
-									}
-								}
-							}
-						}
-					},
-					"search": {"properties": {"hits": {"type": "integer"}, "version": {"type": "integer"}}}
-				}
-			};
-			var options = {
-				index: '.kibana',
-				type: 'dashboard'
-			};
-			
-			esClient.db.indices.existsType(options, function (error, result) {
-				if (error || !result) {
-					esClient.db.indices.create(mapping, function (error) {
-						return cb(error, true);
-					});
-				}
-				else {
-					return cb(null, true);
-				}
+			mongo.find('analytics', {_type: 'mapping'}, function (error, mapping) {
+				if (error) return cb(error);
+				
+					var mapping = {
+						index: '.kibana',
+						body: mapping._json
+					};
+				esClient.db.indices.existsType(mapping, function (error, result) {
+					if (error || !result) {
+						esClient.db.indices.create(mapping, function (error) {
+							return cb(error, true);
+						});
+					}
+					else {
+						return cb(null, true);
+					}
+				});
+				
 			});
-			
 			
 		}
 		
-		function putSettings(cb) {
+		function putSettings(esResponse, cb) {
 			var condition = {
 				"$and": [
 					{
@@ -601,9 +588,12 @@ var lib = {
 					}
 				]
 			};
-			var criteria = {"$set": {"_env.dashboard": true}};
+			var criteria = {"$set": {"env.dashboard": true}};
 			if (dbConfiguration.dbs.es_clusters) {
-				criteria["$set"]._cluster = dbConfiguration.dbs.es_clusters;
+				criteria["$set"].elasticsearch = {
+					status: "deployed",
+					version: esResponse.version.number
+				};
 			}
 			var options = {
 				"safe": true,

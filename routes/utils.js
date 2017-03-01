@@ -3,7 +3,7 @@ var os = require("os");
 var fs = require("fs");
 var path = require("path");
 var exec = require("child_process").exec;
-
+var uuid = require('uuid');
 var soajs = require("soajs");
 var whereis = require('whereis');
 
@@ -304,6 +304,7 @@ module.exports = {
 		
 		//modify environments file
 		var envData = fs.readFileSync(folder + "environments/dashboard.js", "utf8");
+		var settings = fs.readFileSync(folder + "analytics/settings.js", "utf8");
 		envData = envData.replace(/%domain%/g, body.gi.domain);
 		envData = envData.replace(/%site%/g, body.gi.site);
 		envData = envData.replace(/%api%/g, body.gi.api);
@@ -318,23 +319,27 @@ module.exports = {
 		envData = envData.replace(/%deployDockerNodes%/g, body.deployment.deployDockerNodes);
 		envData = envData.replace(/%clusterPrefix%/g, body.clusters.prefix);
 		envData = envData.replace(/"%clusters%"/g, JSON.stringify(clusters, null, 2));
+		var uid = uuid.v4();
 		if (es_clusters) {
-			envData = envData.replace(/"%es_clusters%"/g, JSON.stringify(es_clusters, null, 2));
-			envData = envData.replace(/%es_database%/g, "esClient");
+			envData = envData.replace(/"%es_analytics_cluster%"/g, JSON.stringify(es_clusters, null, 2));
+			envData = envData.replace(/"%es_analytics_cluster_name%"/g, JSON.stringify("es_analytics_cluster_" + uid), null ,2);
+			envData = envData.replace(/%es_database_name%/g, "es_analytics_db_" + uid);
 			envData = envData.replace(/"%databases_value%"/g, JSON.stringify({
-				"cluster": "es_clusters",
+				"cluster": "es_analytics_cluster_" + uid,
 				"tenantSpecific": false
 			}, null, 2));
-			
+			settings = settings.replace(/"%db_name%"/g, JSON.stringify("es_analytics_db_" + uid), null ,2);
 		}
 		else {
-			envData = envData.replace(/"es_clusters": "%es_clusters%",/g, '');
-			envData = envData.replace(/es_clusters": "%es_clusters%/g, '');
+			envData = envData.replace(/"%es_analytics_cluster_name%": "%es_analytics_cluster%",/g, '');
+			envData = envData.replace(/%es_database_name%: "%databases_value%"/g, '');
+			settings = settings.replace(/"db_name": "%db_name%"/g, '');
 		}
 		envData = envData.replace(/%keySecret%/g, body.security.key);
 		envData = envData.replace(/%sessionSecret%/g, body.security.session);
 		envData = envData.replace(/%cookieSecret%/g, body.security.cookie);
 		fs.writeFile(folder + "environments/dashboard.js", envData, "utf8");
+		fs.writeFile(folder + "analytics/settings.js", settings, "utf8");
 		
 		//modify tenants file
 		var tntData = fs.readFileSync(folder + "tenants/owner.js", "utf8");
