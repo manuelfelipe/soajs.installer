@@ -25,8 +25,8 @@ var config = {
 	mounts: [
 		{
 			"Type": "volume",
-			"Source": gConfig.docker.volumes.log.label,
-			"Target": gConfig.docker.volumes.log.path
+			"Source": "elasticsearch-volume",
+			"Target": '/usr/share/elasticsearch/data'
 		}
 	]
 };
@@ -38,7 +38,8 @@ module.exports = {
             "Image": config.image.name,
             "Env": config.env,
             "Command": [config.command[0]],
-            "Args": config.command.splice(1)
+            "Args": config.command.splice(1),
+	        "Mounts": config.mounts
         },
         "Placement": {},
         "Resources": {
