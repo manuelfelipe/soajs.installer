@@ -499,7 +499,7 @@ module.exports = {
 	
 	"verifyEsIP": function (req, res, cb) {
 		var tempData = req.soajs.inputmaskData.es_clusters;
-		if (tempData.analytics) {
+		if (tempData) {
 			if (tempData.es_Ext) {
 				for (var i = 0; i < tempData.servers.length; i++) {
 					if (!tempData.servers[i].host)

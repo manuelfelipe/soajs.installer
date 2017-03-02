@@ -76,17 +76,17 @@ var components = {
 							],
 							"volumeMounts": [
 								{
-									"mountPath": gConfig.kubernetes.volumes.log.path,
-									"name": gConfig.kubernetes.volumes.log.label
+									"mountPath": '/usr/share/elasticsearch/data',
+									"name": "elasticsearch-volume"
 								}
 							]
 						}
 					],
 					"volumes": [
 						{
-							"name": gConfig.kubernetes.volumes.log.label,
+							"name": "elasticsearch-volume",
 							"hostPath": {
-								"path": gConfig.kubernetes.volumes.log.path
+								"path":  '/usr/share/elasticsearch/data'
 							}
 						}
 					]

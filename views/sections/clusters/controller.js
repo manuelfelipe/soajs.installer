@@ -92,7 +92,7 @@ clustersApp.controller('clustersCtrl', ['$scope', '$timeout', 'ngDataApi', funct
 			alert("Streaming should be a JSON object!");
 			return false;
 		}
-		if ($scope.es_clusters.analytics) {
+		if ($scope.analytics) {
 			try {
 				es_data.URLParam = JSON.parse(es_data.URLParam);
 			}
@@ -190,7 +190,6 @@ clustersApp.controller('clustersCtrl', ['$scope', '$timeout', 'ngDataApi', funct
 			};
 			if ($scope.deployAnalytics) {
 				$scope.es_clusters = {
-					"analytics": true,
 					"es_Ext": (response && response.es_clusters && response.es_clusters.es_Ext) ? response.es_clusters.es_Ext : false,
 					"servers": (response && response.es_clusters && response.es_clusters.servers) ? response.es_clusters.servers : [{
 						"host": "127.0.0.1",
@@ -211,11 +210,10 @@ clustersApp.controller('clustersCtrl', ['$scope', '$timeout', 'ngDataApi', funct
 						"number_of_replicas": 1
 					}, null, 2)
 				};
+				$scope.analytics = true;
 			}
 			else {
-				$scope.es_clusters = {
-					"analytics": false
-				};
+				$scope.analytics = false;
 			}
 			
 			resizeContent();

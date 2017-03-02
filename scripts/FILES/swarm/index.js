@@ -18,12 +18,7 @@ var analyticsCollection = 'analytics';
 var utilLog = require('util');
 var dbConfiguration = require('../../../data/startup/environments/dashboard');
 var esClient;
-// if (dbConfiguration.dbs.clusters.es_clusters) {
-// 	if (dbConfiguration.dbs.clusters[es_analytics_cluster].analytics) {
-// 		delete dbConfiguration.dbs.clusters[es_analytics_cluster].analytics;
-// 	}
-// 	var esClient = new soajs.es(dbConfiguration.dbs.clusters[es_analytics_cluster]);
-// }
+
 var lib = {
 	"loadCustomData": function (cb) {
 		var dataDir = process.env.SOAJS_DATA_FOLDER;
@@ -326,6 +321,7 @@ var lib = {
 			utilLog.log('External Elasticsearch deployment detected, Elasticsearch containers will not be deployed ...');
 			lib.configureElastic(deployer, options, cb);
 		}
+		
 		deployer.createService(options, function (error, result) {
 			if (config.analytics === "true") {
 				if (options.Name === 'elasticsearch') {
@@ -378,12 +374,12 @@ var lib = {
 	addMongoInfo: function (services, mongoInfo, cb) {
 		var mongoEnv = [];
 		
-		if(config.mongo.prefix && config.mongo.prefix !== ""){
+		if (config.mongo.prefix && config.mongo.prefix !== "") {
 			mongoEnv.push('SOAJS_MONGO_PREFIX=' + config.mongo.prefix);
 		}
 		
 		if (config.mongo.external) {
-			if(config.mongo.rsName && config.mongo.rsName !== ""){
+			if (config.mongo.rsName && config.mongo.rsName !== "") {
 				mongoEnv.push('SOAJS_MONGO_RSNAME=' + config.mongo.rsName);
 			}
 			
@@ -394,7 +390,7 @@ var lib = {
 			}
 			
 			mongoEnv.push('SOAJS_MONGO_NB=' + profile.servers.length);
-			for(var i = 0; i < profile.servers.length; i++){
+			for (var i = 0; i < profile.servers.length; i++) {
 				mongoEnv.push('SOAJS_MONGO_IP_' + (i + 1) + '=' + profile.servers[i].host);
 				mongoEnv.push('SOAJS_MONGO_PORT_' + (i + 1) + '=' + profile.servers[i].port);
 			}
@@ -476,19 +472,17 @@ var lib = {
 	
 	configureElastic: function (deployer, serviceOptions, cb) {
 		mongo.findOne('analytics', {_type: 'settings'}, function (error, settings) {
-			if (error){
+			if (error) {
 				return cb(error);
 			}
-			if  (settings && settings.elasticsearch && dbConfiguration.dbs.databases[settings.elasticsearch.db_name]) {
+			if (settings && settings.elasticsearch && dbConfiguration.dbs.databases[settings.elasticsearch.db_name]) {
 				var cluster = dbConfiguration.dbs.databases[settings.elasticsearch.db_name].cluster;
 				esClient = new soajs.es(dbConfiguration.dbs.clusters[cluster]);
-				console.log(cluster)
-				console.log(settings.elasticsearch.db_name)
 			}
 			else {
 				throw new Error("No Elastic db name found!");
 			}
-			lib.getServiceNames(serviceOptions.Name, deployer, serviceOptions.Mode.Replicated.Replicas, function (error, elasticIPs) {
+			lib.getServiceNames(serviceOptions.Name, deployer, serviceOptions.Mode.Replicated.Replicas, function (error) {
 				if (error) return cb(error);
 				pingElastic(function (err, esResponse) {
 					utilLog.log('Configuring elasticsearch ...');
@@ -503,11 +497,7 @@ var lib = {
 							putMapping(callback);
 						}
 						
-					}, function (err) {
-						if (err) return cb(err);
-						
-						return cb(null, true);
-					});
+					}, cb);
 				});
 			});
 		});
@@ -561,10 +551,10 @@ var lib = {
 			mongo.find('analytics', {_type: 'mapping'}, function (error, mapping) {
 				if (error) return cb(error);
 				
-					var mapping = {
-						index: '.kibana',
-						body: mapping._json
-					};
+				var mapping = {
+					index: '.kibana',
+					body: mapping._json
+				};
 				esClient.db.indices.existsType(mapping, function (error, result) {
 					if (error || !result) {
 						esClient.db.indices.create(mapping, function (error) {
@@ -577,7 +567,6 @@ var lib = {
 				});
 				
 			});
-			
 		}
 		
 		function putSettings(esResponse, cb) {
@@ -589,12 +578,12 @@ var lib = {
 				]
 			};
 			var criteria = {"$set": {"env.dashboard": true}};
-			if (dbConfiguration.dbs.es_clusters) {
-				criteria["$set"].elasticsearch = {
-					status: "deployed",
-					version: esResponse.version.number
-				};
-			}
+			
+			criteria["$set"].elasticsearch = {
+				status: "deployed",
+				version: esResponse.version.number
+			};
+			
 			var options = {
 				"safe": true,
 				"multi": false,
@@ -604,7 +593,7 @@ var lib = {
 				if (error) {
 					return cb(error);
 				}
-				return cb(null, body)
+				return cb(null, true)
 			});
 		}
 		
@@ -924,8 +913,6 @@ var lib = {
 	},
 	
 	setDefaultIndex: function (cb) {
-		//todo
-		//remove hard coded id
 		
 		var index = {
 			index: ".kibana",
@@ -949,7 +936,52 @@ var lib = {
 					}
 					if (result && result._env && result._env.dashboard) {
 						index.id = res.hits.hits[0]._id;
-						esClient.db.update(index, cb);
+						
+						async.parallel({
+							"updateES": function (call) {
+								esClient.db.update(index, call);
+							},
+							"updateSettings": function (call) {
+								var condition = {
+									"$and": [
+										{
+											"_type": "settings"
+										}
+									]
+								};
+								var criteria = {
+									"$set": {
+										"kibana": {
+											"version": index.id,
+											"status": "deployed",
+											"port": "32601"
+										},
+										"logstash": {
+											"dashboard": {
+												"status": "deployed"
+											}
+										},
+										"filebeat":{
+											"dashboard": {
+												"status": "deployed"
+											}
+										}
+									}
+								};
+								var options = {
+									"safe": true,
+									"multi": false,
+									"upsert": true
+								};
+								mongo.update('analytics', condition, criteria, options, function (error, body) {
+									if (error) {
+										return call(error);
+									}
+									return call(null, true)
+								});
+							}
+							
+						}, cb)
 					}
 					else {
 						return cb(null, true);

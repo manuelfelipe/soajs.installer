@@ -16,17 +16,7 @@ var profile = require(config.profile);
 var mongo = new soajs.mongo(profile);
 var analyticsCollection = 'analytics';
 var dbConfiguration = require('../../../data/startup/environments/dashboard');
-
-if (dbConfiguration.dbs.clusters.es_clusters) {
-	if(dbConfiguration.dbs.clusters.es_clusters.analytics){
-		delete dbConfiguration.dbs.clusters.es_clusters.analytics;
-	}
-	dbConfiguration.dbs.es_clusters.servers = [{
-		"host": process.env.CONTAINER_HOST.toString(),
-		"port": 30920
-	}];
-	var esClient = new soajs.es(dbConfiguration.dbs.es_clusters);
-}
+var esClient;
 var utilLog = require('util');
 
 var lib = {
@@ -433,26 +423,37 @@ var lib = {
     },
 	
 	configureElastic: function (deployer, serviceOptions, cb) {
-		lib.getServiceIPs(serviceOptions.deployment.metadata.name , deployer, serviceOptions.deployment.spec.replicas, function (error, elasticIPs) {
-			if (error) return cb(error);
-			
-			pingElastic(function () {
-				utilLog.log('Configuring elasticsearch ...');
-				async.parallel({
-					"template": function (callback) {
-						putTemplate(callback);
-					},
-					"settings": function (callback) {
-						putSettings(callback);
-					},
-					"mapping": function (callback) {
-						putMapping(callback);
-					}
-					
-				}, function (err) {
-					if (err) return cb(err);
-					
-					return cb(null, true);
+		mongo.findOne('analytics', {_type: 'settings'}, function (error, settings) {
+			if (error) {
+				return cb(error);
+			}
+			if (settings && settings.elasticsearch && dbConfiguration.dbs.databases[settings.elasticsearch.db_name]) {
+				var cluster = dbConfiguration.dbs.databases[settings.elasticsearch.db_name].cluster;
+				esClient = new soajs.es(dbConfiguration.dbs.clusters[cluster]);
+			}
+			else {
+				throw new Error("No Elastic db name found!");
+			}
+			lib.getServiceNames(serviceOptions.Name, deployer, serviceOptions.Mode.Replicated.Replicas, function (error, elasticIPs) {
+				if (error) return cb(error);
+				pingElastic(function (err, esResponse) {
+					utilLog.log('Configuring elasticsearch ...');
+					async.parallel({
+						"template": function (callback) {
+							putTemplate(callback);
+						},
+						"settings": function (callback) {
+							putSettings(esResponse, callback);
+						},
+						"mapping": function (callback) {
+							putMapping(callback);
+						}
+						
+					}, function (err) {
+						if (err) return cb(err);
+						
+						return cb(null, true);
+					});
 				});
 			});
 		});
@@ -488,12 +489,12 @@ var lib = {
 		}
 		
 		function putTemplate(cb) {
-			mongo.find('analytics', {_type: 'mapping'}, function (error, mappings) {
+			mongo.find('analytics', {_type: 'template'}, function (error, templates) {
 				if (error) return cb(error);
-				async.each(mappings, function (oneMapping, callback) {
+				async.each(templates, function (oneTemplate, callback) {
 					var options = {
-						'name': oneMapping._name,
-						'body': oneMapping._json
+						'name': oneTemplate._name,
+						'body': oneTemplate._json
 					};
 					esClient.db.indices.putTemplate(options, function (error) {
 						return callback(error, true);
@@ -503,57 +504,28 @@ var lib = {
 		}
 		
 		function putMapping(cb) {
-			var mapping = {
-				index: '.kibana',
-				type: 'dashboard',
-				body: {
-					"dashboard": {
-						"properties": {
-							"title": {"type": "string"},
-							"hits": {"type": "integer"},
-							"description": {"type": "string"},
-							"panelsJSON": {
-								"properties": {
-									"type": {"type": "string"},
-									"optionsJSON": {"type": "string"},
-									"uiStateJSON": {"type": "string"},
-									"version": {"type": "integer"},
-									"timeRestore": {"type": "boolean"},
-									"timeTo": {"type": "string"},
-									"timeFrom": {"type": "string"},
-									"kibanaSavedObjectMeta": {
-										"properties": {
-											"searchSourceJSON": {
-												"type": "string"
-											}
-										}
-									}
-								}
-							}
-						}
+			mongo.find('analytics', {_type: 'mapping'}, function (error, mapping) {
+				if (error) return cb(error);
+				
+				var mapping = {
+					index: '.kibana',
+					body: mapping._json
+				};
+				esClient.db.indices.existsType(mapping, function (error, result) {
+					if (error || !result) {
+						esClient.db.indices.create(mapping, function (error) {
+							return cb(error, true);
+						});
 					}
-				}
-			};
-			var options = {
-				index: '.kibana',
-				type: 'dashboard'
-			};
-			
-			esClient.db.indices.existsType(options, function (error, result) {
-				if (error || !result) {
-					esClient.db.indices.create(mapping, function (error, result) {
-						return cb(error, true);
-					});
-				}
-				else {
-					return cb(null, true);
-				}
+					else {
+						return cb(null, true);
+					}
+				});
+				
 			});
-			
-			
 		}
 		
-		function putSettings(cb) {
+		function putSettings(esResponse, cb) {
 			var condition = {
 				"$and": [
 					{
@@ -561,10 +533,13 @@ var lib = {
 					}
 				]
 			};
-			var criteria = {"$set": {"_env.dashboard": true}};
-			if (dbConfiguration.dbs.es_clusters) {
-				criteria["$set"]._cluster = dbConfiguration.dbs.es_clusters;
-			}
+			var criteria = {"$set": {"env.dashboard": true}};
+			
+			criteria["$set"].elasticsearch = {
+				status: "deployed",
+				version: esResponse.version.number
+			};
+			
 			var options = {
 				"safe": true,
 				"multi": false,
@@ -574,7 +549,7 @@ var lib = {
 				if (error) {
 					return cb(error);
 				}
-				return cb(null, body)
+				return cb(null, true)
 			});
 		}
 		
@@ -604,14 +579,22 @@ var lib = {
 		lib.getServiceIPs(dockerServiceName, deployer, replicaCount, function (error, serviceIPs) {
 			if (error) return cb(error);
 			var options = {
-				"$and": [
+				"$or": [
 					{
-						"_type": {
-							"$in": ["dashboard", "visualization", "search"]
-						}
+						"$and": [
+							{
+								"_type": {
+									"$in": ["dashboard", "visualization", "search"]
+								}
+							},
+							{
+								"_service": serviceType
+							}
+						]
+						
 					},
 					{
-						"_service": serviceType
+						"_shipper": "topbeat"
 					}
 				]
 			};
@@ -623,6 +606,9 @@ var lib = {
 				
 				//filebeat-service-environment-taskname-*
 				
+				var filebeatIndex = require("../analytics/indexes/filebeat-index");
+				var topbeatIndex = require("../analytics/indexes/topbeat-index");
+				var allIndex = require("../analytics/indexes/all-index");
 				analyticsArray = analyticsArray.concat(
 					[
 						{
@@ -634,7 +620,9 @@ var lib = {
 						},
 						{
 							title: 'filebeat-' + serviceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*",
-							timeFieldName: '@timestamp'
+							timeFieldName: '@timestamp',
+							fields: filebeatIndex.fields,
+							fieldFormatMap: filebeatIndex.fieldFormatMap
 						}
 					]
 				);
@@ -650,7 +638,9 @@ var lib = {
 						},
 						{
 							title: 'topbeat-' + serviceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*",
-							timeFieldName: '@timestamp'
+							timeFieldName: '@timestamp',
+							fields: topbeatIndex.fields,
+							fieldFormatMap: topbeatIndex.fieldFormatMap
 						}
 					]
 				);
@@ -666,7 +656,9 @@ var lib = {
 						},
 						{
 							title: '*-' + serviceName + "-" + serviceEnv + "-" + task_Name.name + "-" + "*",
-							timeFieldName: '@timestamp'
+							timeFieldName: '@timestamp',
+							fields: allIndex.fields,
+							fieldFormatMap: allIndex.fieldFormatMap
 						}
 					]
 				);
@@ -685,7 +677,9 @@ var lib = {
 							},
 							{
 								title: 'filebeat-' + serviceName + "-" + serviceEnv + "-" + "*",
-								timeFieldName: '@timestamp'
+								timeFieldName: '@timestamp',
+								fields: filebeatIndex.fields,
+								fieldFormatMap: filebeatIndex.fieldFormatMap
 							}
 						]
 					);
@@ -701,7 +695,9 @@ var lib = {
 							},
 							{
 								title: 'topbeat-' + serviceName + "-" + serviceEnv + "-" + "*",
-								timeFieldName: '@timestamp'
+								timeFieldName: '@timestamp',
+								fields: topbeatIndex.fields,
+								fieldFormatMap: topbeatIndex.fieldFormatMap
 							}
 						]
 					);
@@ -717,7 +713,9 @@ var lib = {
 							},
 							{
 								title: '*-' + serviceName + "-" + serviceEnv + "-" + "*",
-								timeFieldName: '@timestamp'
+								timeFieldName: '@timestamp',
+								fields: allIndex.fields,
+								fieldFormatMap: allIndex.fieldFormatMap
 							}
 						]
 					);
@@ -736,7 +734,9 @@ var lib = {
 							},
 							{
 								title: 'filebeat-' + serviceName + '-' + "*",
-								timeFieldName: '@timestamp'
+								timeFieldName: '@timestamp',
+								fields: filebeatIndex.fields,
+								fieldFormatMap: filebeatIndex.fieldFormatMap
 							}
 						]
 					);
@@ -753,7 +753,9 @@ var lib = {
 							},
 							{
 								title: 'topbeat-' + serviceName + "-" + "*",
-								timeFieldName: '@timestamp'
+								timeFieldName: '@timestamp',
+								fields: topbeatIndex.fields,
+								fieldFormatMap: topbeatIndex.fieldFormatMap
 							}
 						]
 					);
@@ -770,7 +772,9 @@ var lib = {
 							},
 							{
 								title: '*-' + serviceName + "-" + "*",
-								timeFieldName: '@timestamp'
+								timeFieldName: '@timestamp',
+								fields: allIndex.fields,
+								fieldFormatMap: allIndex.fieldFormatMap
 							}
 						]
 					);
@@ -795,15 +799,28 @@ var lib = {
 								else if (oneRecord._injector === "env") {
 									serviceIndex = "*-" + serviceEnv + "-" + "*";
 								}
-								else if (oneRecord._injector === "taskName") {
+								else if (oneRecord._injector === "taskname") {
 									serviceIndex = serviceIndex + serviceEnv + "-" + task_Name.name + "-" + "*";
 								}
+							}
+							
+							var injector;
+							if (oneRecord._injector === 'service') {
+								injector = serviceName + "-" + serviceEnv;
+							}
+							else if (oneRecord._injector === 'taskname') {
+								injector = task_Name.name;
+							}
+							else if (oneRecord._injector === 'env') {
+								injector = serviceEnv;
 							}
 							oneRecord = JSON.stringify(oneRecord);
 							if (serviceIndex) {
 								oneRecord = oneRecord.replace(/%serviceIndex%/g, serviceIndex);
 							}
-							oneRecord = oneRecord.replace(/%injector%/g, task_Name.name);
+							if (injector) {
+								oneRecord = oneRecord.replace(/%injector%/g, injector);
+							}
 							oneRecord = JSON.parse(oneRecord);
 							var recordIndex = {
 								index: {
@@ -853,8 +870,6 @@ var lib = {
 	},
 	
 	setDefaultIndex: function (cb) {
-		//todo
-		//remove hard coded id
 		
 		var index = {
 			index: ".kibana",
@@ -867,25 +882,70 @@ var lib = {
 			index: ".kibana",
 			type: 'config'
 		};
-		esClient.db.search(condition, function (err, res){
+		esClient.db.search(condition, function (err, res) {
 			if (err) {
 				return cb(err);
 			}
-			if (res && res.hits && res.hits.hits && res.hits.hits.length> 0){
+			if (res && res.hits && res.hits.hits && res.hits.hits.length > 0) {
 				mongo.findOne(analyticsCollection, {"_type": "settings"}, function (err, result) {
 					if (err) {
 						return cb(err);
 					}
 					if (result && result._env && result._env.dashboard) {
 						index.id = res.hits.hits[0]._id;
-						esClient.db.update(index, cb);
+						
+						async.parallel({
+							"updateES": function (call) {
+								esClient.db.update(index, call);
+							},
+							"updateSettings": function (call) {
+								var condition = {
+									"$and": [
+										{
+											"_type": "settings"
+										}
+									]
+								};
+								var criteria = {
+									"$set": {
+										"kibana": {
+											"version": index.id,
+											"status": "deployed",
+											"port": "32601"
+										},
+										"logstash": {
+											"dashboard": {
+												"status": "deployed"
+											}
+										},
+										"filebeat":{
+											"dashboard": {
+												"status": "deployed"
+											}
+										}
+									}
+								};
+								var options = {
+									"safe": true,
+									"multi": false,
+									"upsert": true
+								};
+								mongo.update('analytics', condition, criteria, options, function (error, body) {
+									if (error) {
+										return call(error);
+									}
+									return call(null, true)
+								});
+							}
+							
+						}, cb)
 					}
 					else {
 						return cb(null, true);
 					}
 				});
 			}
-			else{
+			else {
 				return cb(null, true);
 			}
 		});
