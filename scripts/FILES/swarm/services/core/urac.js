@@ -23,7 +23,7 @@ var config = {
     env: [
         'NODE_ENV=production',
         'SOAJS_ENV=dashboard',
-
+	    'SOAJS_LOGSTASH_ADDRESS="dashboard-logstash:12201"',
         'SOAJS_DEPLOY_HA=swarm',
         'SOAJS_HA_NAME={{.Task.Name}}',
 

@@ -133,7 +133,11 @@ var components = {
                                             "fieldPath": "metadata.name"
                                         }
                                     }
-                                }
+                                },
+	                            {
+		                            "name":"SOAJS_LOGSTASH_ADDRESS" ,
+		                            "value": "'dashboard-logstash:12201'"
+	                            }
                             ],
                             "volumeMounts": [
                                 {

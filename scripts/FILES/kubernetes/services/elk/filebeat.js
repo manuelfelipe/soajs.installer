@@ -59,6 +59,14 @@ var components = {
 									"name": "SOAJS_ENV",
 									"value": "dashboard"
 								},
+								{
+									"name":"SOAJS_LOGSTASH_PORT" ,
+									"value": "12201"
+								},
+								{
+									"name":"SOAJS_LOGSTASH_HOST" ,
+									"value": "dashboard-logstash"
+								}
 							],
 							"volumeMounts": [
 								{

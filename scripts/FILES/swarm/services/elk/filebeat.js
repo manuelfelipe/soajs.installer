@@ -13,7 +13,7 @@ var config = {
 		name: 'filebeat:latest'
 	},
 	env: [
-		'SOAJS_LOGSTASH_HOST=logstash',
+		'SOAJS_LOGSTASH_HOST=dashboard-logstash',
 		'SOAJS_ENV=dashboard',
 		'SOAJS_LOGSTASH_PORT=12201'
 	],

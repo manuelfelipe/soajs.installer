@@ -10,7 +10,7 @@ var components = {
             "labels": {
                 "soajs.content": "true",
                 "soajs.env.code": "dashboard",
-
+				
                 "soajs.service.name": "controller",
                 "soajs.service.group": "soajs-core-services",
                 "soajs.service.type": "service",
@@ -141,7 +141,12 @@ var components = {
                                             "fieldPath": "metadata.name"
                                         }
                                     }
-                                }
+                                },
+	                            {
+		                            "name":"SOAJS_LOGSTASH_ADDRESS" ,
+		                            "value": "'dashboard-logstash:12201'"
+	                            }
+
                             ],
                             "volumeMounts": [
                                 {

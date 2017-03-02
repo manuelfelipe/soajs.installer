@@ -1,7 +1,7 @@
 'use strict';
 var gConfig = require("../../config.js");
 var config = {
-    servName: 'logstash',
+    servName: 'dashboard-logstash',
     servReplica: 1,
     servNetwork: [{Target: gConfig.docker.network}],
 

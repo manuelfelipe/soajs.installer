@@ -6,7 +6,7 @@ var components = {
 		"apiVersion": "v1",
 		"kind": "Service",
 		"metadata": {
-			"name": "logstash",
+			"name": "dashboard-logstash",
 			"labels": {
 				"soajs.content": "true",
 				"soajs.env.code": "dashboard",
@@ -17,7 +17,7 @@ var components = {
 		},
 		"spec": {
 			"selector": {
-				"soajs.service.label": "logstash"
+				"soajs.service.label": "dashboard-logstash"
 			},
 			"ports": [
 				{
@@ -31,7 +31,7 @@ var components = {
 		"apiVersion": "extensions/v1beta1",
 		"kind": "Deployment",
 		"metadata": {
-			"name": "logstash",
+			"name": "dashboard-logstash",
 			"labels": {
 				"soajs.content": "true",
 				"soajs.env.code": "dashboard",
@@ -50,7 +50,7 @@ var components = {
 			},
 			"template": {
 				"metadata": {
-					"name": "logstash",
+					"name": "dashboard-logstash",
 					"labels": {
 						"soajs.content": "true",
 						"soajs.env.code": "dashboard",
@@ -63,7 +63,7 @@ var components = {
 				"spec": {
 					"containers": [
 						{
-							"name": "logstash",
+							"name": "dashboard-logstash",
 							"image": gConfig.imagePrefix + "/logstash",
 							"imagePullPolicy": "IfNotPresent",
 							"command": [
