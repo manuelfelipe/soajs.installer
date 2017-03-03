@@ -42,6 +42,7 @@ var config = {
 
 		'SOAJS_DEPLOY_HA=swarm',
 		'SOAJS_HA_NAME={{.Task.Name}}',
+		'SOAJS_LOGSTASH_ADDRESS="dashboard-logstash:12201"',
 
 		'SOAJS_GIT_DASHBOARD_BRANCH=' + dashUISrc.branch,
 		'SOAJS_NX_API_DOMAIN=' + gConfig.apiPrefix + '.' + masterDomain,
