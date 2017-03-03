@@ -934,7 +934,7 @@ var lib = {
 					if (err) {
 						return cb(err);
 					}
-					if (result && result._env && result._env.dashboard) {
+					if (result && result.env && result.env.dashboard) {
 						index.id = res.hits.hits[0]._id;
 						
 						async.parallel({
@@ -943,11 +943,7 @@ var lib = {
 							},
 							"updateSettings": function (call) {
 								var condition = {
-									"$and": [
-										{
-											"_type": "settings"
-										}
-									]
+									"_type": "settings"
 								};
 								var criteria = {
 									"$set": {
